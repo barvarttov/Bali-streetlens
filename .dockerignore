@@ -1,0 +1,19 @@
+# Keep secrets, local data and build output out of the image.
+.env
+.env.*
+!.env.example
+.git
+.venv
+data
+results
+vision
+eval
+tools
+docs
+**/node_modules
+**/__pycache__
+web/dist
+*.pt
+*.onnx
+*.engine
+*.mp4
