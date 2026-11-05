@@ -34,9 +34,10 @@ export class LiveScene {
   private readonly resize: ResizeObserver;
   private frame = 0;
   private yaw = 0;
-  private distance = 55;
+  private distance = 42;
   private drag: { x: number; yaw: number } | null = null;
   private disposed = false;
+  private scaleK = 1;
 
   private readonly host: HTMLElement;
 
@@ -79,11 +80,13 @@ export class LiveScene {
       if (!e) {
         const mesh = new THREE.Mesh(this.geometry(o.cls), this.material(o.cls));
         mesh.position.set(o.x, d.h / 2, o.z);
+        mesh.scale.setScalar(this.scaleK);
+        mesh.add(new THREE.LineSegments(this.edges(o.cls), this.edgeMaterial));
         this.scene.add(mesh);
         e = { mesh, target: new THREE.Vector3() };
         this.entries.set(o.id, e);
       }
-      e.target.set(o.x, d.h / 2, o.z);
+      e.target.set(o.x, (d.h * this.scaleK) / 2, o.z);
     }
     for (const [id, e] of this.entries) {
       if (!seen.has(id)) {
@@ -91,6 +94,12 @@ export class LiveScene {
         this.entries.delete(id);
       }
     }
+  }
+
+  // Sketch mode (no calibration): boxes are drawn bigger so they can be seen. Calibrated scenes stay true size.
+  setVehicleScale(k: number): void {
+    this.scaleK = k;
+    for (const e of this.entries.values()) e.mesh.scale.setScalar(k);
   }
 
   dispose(): void {
@@ -103,9 +112,22 @@ export class LiveScene {
     el.removeEventListener("pointerup", this.onUp);
     el.removeEventListener("wheel", this.onWheel);
     this.geometries.forEach((g) => g.dispose());
+    this.edgeGeos.forEach((g) => g.dispose());
+    this.edgeMaterial.dispose();
     this.materials.forEach((m) => m.dispose());
     this.renderer.dispose();
     el.remove();
+  }
+
+  private readonly edgeMaterial = new THREE.LineBasicMaterial({ color: 0x1b1f10 });
+  private readonly edgeGeos = new Map<string, THREE.EdgesGeometry>();
+  private edges(cls: LiveObject["cls"]): THREE.EdgesGeometry {
+    let g = this.edgeGeos.get(cls);
+    if (!g) {
+      g = new THREE.EdgesGeometry(this.geometry(cls));
+      this.edgeGeos.set(cls, g);
+    }
+    return g;
   }
 
   private geometry(cls: LiveObject["cls"]): THREE.BoxGeometry {
@@ -141,7 +163,7 @@ export class LiveScene {
     if (this.disposed) return;
     for (const e of this.entries.values()) e.mesh.position.lerp(e.target, 0.25);
     // Orbit around a point in front of the camera; drag to turn, wheel to zoom.
-    const focus = new THREE.Vector3(0, 0, -15);
+    const focus = new THREE.Vector3(0, 0, -20);
     this.camera.position.set(
       focus.x + Math.sin(this.yaw) * this.distance * 0.6,
       this.distance * 0.7,

@@ -175,12 +175,18 @@ function Viewer({ camera, model }: { camera: LiveCamera; model: string }) {
   useEffect(() => {
     if (!host.current) return;
     const scene = new LiveScene(host.current);
+    scene.setVehicleScale(calRef.current ? 1 : 3);
     sceneRef.current = scene;
     return () => {
       scene.dispose();
       sceneRef.current = null;
     };
   }, []);
+
+  // Without a calibration the scene is a sketch: draw boxes 3x bigger so they are visible.
+  useEffect(() => {
+    sceneRef.current?.setVehicleScale(cal ? 1 : 3);
+  }, [cal]);
 
   // Keep the server analysing this camera while the page is open, and poll the result.
   useEffect(() => {
@@ -241,7 +247,7 @@ function Viewer({ camera, model }: { camera: LiveCamera; model: string }) {
       <p className={`live-note${cal ? "" : " is-warn"}`}>
         {cal
           ? "Posisi dihitung dari kalibrasi kamera ini."
-          : "Kamera ini belum dikalibrasi, jadi gambar ini hanya sketsa: posisi dan jarak bukan ukuran nyata."}
+          : "Kamera ini belum dikalibrasi, jadi gambar ini hanya sketsa: posisi dan jarak bukan ukuran nyata, dan kotak digambar 3x lebih besar agar terlihat. Belum ada peta jalan atau gedung."}
       </p>
       <p className="live-note">
         Model: {obs?.model ?? model}, dilatih dari nol. Skor uji 0,47 mAP50 pada 84 bingkai CCTV; paling lemah saat hujan dan malam,
