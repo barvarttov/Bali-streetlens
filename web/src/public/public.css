@@ -2183,3 +2183,24 @@ a.btn {
     opacity: 0.6;
   }
 }
+
+/* Camera card: real AGA counts (live/useCameraLive.ts) */
+.camera-live-counts {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin: 8px 0;
+}
+.camera-live-counts div {
+  border: 1px solid var(--rule);
+  padding: 6px;
+}
+.camera-live-counts dt {
+  color: var(--ink-2);
+  font-size: 0.8rem;
+}
+.camera-live-counts dd {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 700;
+}
