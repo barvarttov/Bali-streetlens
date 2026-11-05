@@ -316,7 +316,6 @@ _remote_tiles = RemoteTiles()
 MAX_TILE_ZOOM = 15
 
 
-@app.get("/tiles/{z}/{x}/{y}.mvt")
 def get_tile(z: int, x: int, y: int) -> Response:
     """OpenStreetMap vector tiles for Bali: from data/tiles (npm run tiles), else fetched once and kept.
 
@@ -329,10 +328,6 @@ def get_tile(z: int, x: int, y: int) -> Response:
         return FileResponse(path, media_type="application/vnd.mapbox-vector-tile", headers=headers)
     if not 0 <= z <= MAX_TILE_ZOOM:
         return Response(status_code=204)
-    if os.environ.get("VERCEL"):
-        # On Vercel the island's tiles (data/tiles) are static files on the CDN, so a request that reaches
-        # here is for a tile the build doesn't have (open sea). Fetching it remotely would only be slow.
-        return Response(status_code=204, headers=headers)
     data = _remote_tiles.tile(z, x, y)
     if data is None:  # offline: don't let the browser cache the blank
         return Response(status_code=204, headers={"Cache-Control": "no-store"})
@@ -345,10 +340,19 @@ def get_tile(z: int, x: int, y: int) -> Response:
     return Response(data, media_type="application/vnd.mapbox-vector-tile", headers=headers)
 
 
+# On Vercel the island's tiles (data/tiles) are copied into the static output, and Vercel sends a path to a
+# Python route before it looks at static files. So there the route must not exist: the CDN serves the
+# tiles, and a tile the build lacks (open sea) falls through to SpaStaticFiles below, which answers 204.
+if not os.environ.get("VERCEL"):
+    app.add_api_route("/tiles/{z}/{x}/{y}.mvt", get_tile, methods=["GET"])
+
+
 class SpaStaticFiles(StaticFiles):
     """Serves web/dist, answering unknown paths (/simpang/patung-kuda, /tim/...) with index.html."""
 
     async def get_response(self, path: str, scope: Any) -> Response:
+        if path.startswith("tiles/"):  # a missing map tile is an empty square, never the app's HTML
+            return Response(status_code=204, headers={"Cache-Control": "public, max-age=86400, s-maxage=604800"})
         try:
             response = await super().get_response(path, scope)
         except StarletteHTTPException as exc:  # StaticFiles raises Starlette's base class, not FastAPI's
