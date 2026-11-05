@@ -1,5 +1,6 @@
 import { useEffect, useId, useMemo, useState } from "react";
 import { MagnifyingGlass, MapPin, Signpost, X } from "@phosphor-icons/react";
+import { navigate } from "../router.ts";
 import { useLang } from "../i18n.tsx";
 import type { StringKey } from "../i18n.tsx";
 import { LABEL_RANK } from "../lib/liveSchema.ts";
@@ -112,6 +113,9 @@ export function SearchBar({ corridor, states, onPickJunction, onPickPlace, onRou
         <button type="button" className="search-route" onClick={onRoute} aria-label={t("routeButtonLabel")} title={t("routeButtonLabel")}>
           <Signpost size={20} weight="bold" aria-hidden="true" />
           <span className="search-route-text">{t("routeButton")}</span>
+        </button>
+        <button type="button" className="search-route" onClick={() => navigate("/langsung")} title="CCTV langsung dengan AGA">
+          <span className="search-route-text">CCTV langsung</span>
         </button>
         <div className="lang-toggle" role="group" aria-label={t("langLabel")}>
           <button type="button" aria-pressed={lang === "id"} onClick={() => setLang("id")} lang="id">

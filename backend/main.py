@@ -1,7 +1,8 @@
 """Bali StreetLens backend.
 
 Serves the clip list (with status), observations JSON, camera config and the video files.
-Inference never runs here: this only serves files that vision/analyze.py already wrote.
+Recorded clips are served from files that vision/analyze.py already wrote. Live cameras are analysed by
+backend/aga_live.py (AGA, our own detector), only when a visitor opens one.
 
 Run from the repo root:
     .venv\\Scripts\\python -m uvicorn backend.main:app --port 8000 --reload
@@ -25,7 +26,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from backend import assistant, live
+from backend import aga_live, assistant, live
 from backend.routing import RouteError, Router
 from backend.tilecache import RemoteTiles, store
 
@@ -219,6 +220,52 @@ def get_camera_config(camera_id: str) -> Any:
         return yaml.safe_load(path.read_text(encoding="utf-8"))
     except yaml.YAMLError as exc:
         raise HTTPException(500, f"config/{path.name} is not valid YAML: {exc}") from exc
+
+
+_aga_live: aga_live.LiveCameras | None = None
+_aga_live_lock = threading.Lock()
+
+
+def _live_cameras() -> aga_live.LiveCameras:
+    """The AGA live analyser, built on first use so the backend starts fast and works without torch."""
+    global _aga_live
+    with _aga_live_lock:
+        if _aga_live is None:
+            path = CONFIG_DIR / "cameras.json"
+            if not path.is_file():
+                raise HTTPException(404, "config/cameras.json is missing")
+            cameras = json.loads(path.read_text(encoding="utf-8"))["cameras"]
+            _aga_live = aga_live.LiveCameras.from_environment(cameras)
+        return _aga_live
+
+
+@app.get("/api/live/cameras")
+def live_cameras() -> dict[str, Any]:
+    """Cameras whose stream answers right now, and whether AGA can analyse them on this machine."""
+    cams = _live_cameras()
+    return {**cams.status(), "cameras": cams.cameras()}
+
+
+@app.post("/api/live/watch/{camera_id}", status_code=202)
+def live_watch(camera_id: str) -> dict[str, str]:
+    """Starts AGA on one camera (or keeps it going). The page calls this every ~20 s while it is open."""
+    try:
+        return {"camera_id": camera_id, "state": _live_cameras().watch(camera_id)}
+    except KeyError:
+        raise HTTPException(404, f"Unknown camera: {camera_id}") from None
+    except OverflowError as exc:
+        raise HTTPException(429, str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(503, str(exc)) from exc
+
+
+@app.get("/api/live/camera/{camera_id}")
+def live_camera(camera_id: str) -> dict[str, Any]:
+    """The latest AGA result for a watched camera: boxes, classes and temporary track ids only."""
+    obs = _live_cameras().observation(camera_id)
+    if obs is None:
+        raise HTTPException(404, "Camera is not being analysed. POST /api/live/watch/{id} first.")
+    return obs
 
 
 @app.get("/api/live/snapshot")
