@@ -8,6 +8,8 @@ fixtures/*.mp4
 
 # Model weights
 *.pt
+# The AGA detector (our own model, trained from scratch, 49 MB) ships with the repo
+!models/AGA_Model_cctv6.pt
 *.onnx
 *.engine
 

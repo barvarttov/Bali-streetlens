@@ -9,12 +9,21 @@ import { usePath } from "./router.ts";
 // and the team tools never load MapLibre.
 const PublicApp = lazy(() => import("./public/PublicApp.tsx").then((m) => ({ default: m.PublicApp })));
 const TeamApp = lazy(() => import("./tools/TeamApp.tsx").then((m) => ({ default: m.TeamApp })));
+const LivePage = lazy(() => import("./live/LivePage.tsx").then((m) => ({ default: m.LivePage })));
 
 function Root() {
   const path = usePath();
   return (
     <LangProvider>
-      <Suspense fallback={null}>{path === "/tim" || path.startsWith("/tim/") ? <TeamApp /> : <PublicApp />}</Suspense>
+      <Suspense fallback={null}>
+        {path === "/tim" || path.startsWith("/tim/") ? (
+          <TeamApp />
+        ) : path === "/langsung" || path.startsWith("/langsung/") ? (
+          <LivePage />
+        ) : (
+          <PublicApp />
+        )}
+      </Suspense>
     </LangProvider>
   );
 }
