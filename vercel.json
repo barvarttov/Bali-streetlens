@@ -1,0 +1,11 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "fastapi",
+  "buildCommand": "cd web && npm ci && VITE_LIVE_POLL=1 npm run build && cd .. && rm -rf public && cp -r web/dist public",
+  "regions": ["sin1"],
+  "functions": {
+    "backend/main.py": {
+      "excludeFiles": "{web/node_modules/**,web/src/**,web/scripts/**,public/**,data/**,results/**,docs/**,eval/**,tools/**,vision/**,**/test_*.py,**/*.mp4}"
+    }
+  }
+}

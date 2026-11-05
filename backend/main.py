@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import gzip
 import json
+import os
 import threading
 from dataclasses import dataclass
 from pathlib import Path
@@ -277,11 +278,21 @@ def chat_status() -> dict[str, Any]:
     return {"available": bool(assistant.configured_providers()), "providers": [p["name"] for p in assistant.configured_providers()]}
 
 
+def _client_ip(request: Request) -> str:
+    """The visitor's address for the per-visitor chat limit. Behind Vercel every request comes from its proxy,
+    so take the header Vercel sets itself; elsewhere a client could fake that header, so don't trust it."""
+    if os.environ.get("VERCEL"):
+        forwarded = request.headers.get("x-real-ip") or request.headers.get("x-forwarded-for", "").split(",")[0]
+        if forwarded.strip():
+            return forwarded.strip()
+    return request.client.host if request.client else "?"
+
+
 @app.post("/api/chat")
 def post_chat(body: ChatRequest, request: Request) -> dict[str, Any]:
     """One answer from the free assistant (Groq, else NVIDIA), grounded in our own traffic data."""
     corridor = _corridor()
-    client = request.client.host if request.client else "?"
+    client = _client_ip(request)
     try:
         return assistant.chat([m.model_dump() for m in body.messages], body.lang, corridor, _router, client)
     except assistant.AssistantError as exc:
@@ -300,7 +311,8 @@ def get_tile(z: int, x: int, y: int) -> Response:
     Empty sea tiles, and any tile while offline, answer 204 so the map simply leaves that square blank.
     """
     path = TILES_DIR / str(z) / str(x) / f"{y}.mvt"
-    headers = {"Cache-Control": "public, max-age=86400"}
+    # s-maxage lets a hosting CDN (Vercel) keep each tile, so most map views never reach this function.
+    headers = {"Cache-Control": "public, max-age=86400, s-maxage=604800"}
     if path.is_file():
         return FileResponse(path, media_type="application/vnd.mapbox-vector-tile", headers=headers)
     if not 0 <= z <= MAX_TILE_ZOOM:
@@ -310,7 +322,10 @@ def get_tile(z: int, x: int, y: int) -> Response:
         return Response(status_code=204, headers={"Cache-Control": "no-store"})
     if not data:
         return Response(status_code=204, headers=headers)
-    store(path, data)
+    try:
+        store(path, data)
+    except OSError:
+        pass  # read-only disk (Vercel): serve it uncached here, the CDN keeps it instead
     return Response(data, media_type="application/vnd.mapbox-vector-tile", headers=headers)
 
 

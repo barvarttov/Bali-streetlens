@@ -1,0 +1,15 @@
+# Used by Vercel to find and install the backend. Local development still uses backend/requirements.txt;
+# keep the pins below the same as that file.
+[project]
+name = "bali-streetlens"
+version = "0.1.0"
+requires-python = "==3.12.*"
+dependencies = [
+    "fastapi==0.162.0",
+    "starlette==1.10.0",
+    "uvicorn[standard]==0.54.0",
+    "PyYAML==6.0.3",
+]
+
+[tool.vercel]
+entrypoint = "backend.main:app"

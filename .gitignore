@@ -32,3 +32,7 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# Vercel: build copies web/dist here for the CDN; local Vercel CLI state
+/public/
+.vercel/

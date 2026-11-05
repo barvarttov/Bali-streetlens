@@ -33,6 +33,11 @@ export interface LiveState {
   receivedAt: number;
 }
 
+/** Set at build time (VITE_LIVE_POLL=1) for hosting without long-lived streams; locally the SSE stream is used. */
+const LIVE_POLL = import.meta.env.VITE_LIVE_POLL === "1";
+/** With the server's 1-3 s lag, still under format.ts STALE_MS (10 s): a healthy connection never reads as delayed. */
+const POLL_MS = 4_000;
+
 export function useLive(): LiveState {
   const [state, setState] = useState<LiveState>({ snapshot: null, clockOffset: 0, connected: true, receivedAt: 0 });
 
@@ -44,11 +49,32 @@ export function useLive(): LiveState {
       setState({ snapshot, clockOffset: Date.parse(snapshot.generated_at) - now, connected: true, receivedAt: now });
     };
 
+    const lost = () => !closed && setState((s) => ({ ...s, connected: false }));
+
+    if (LIVE_POLL) {
+      // Hosted build (Vercel free plan): no open stream per visitor, so the free quota lasts.
+      // Fetch every few seconds while the tab is visible, and right away when it comes back.
+      let timer = 0;
+      const poll = () => {
+        window.clearTimeout(timer);
+        if (closed || document.hidden) return;
+        fetchJson<LiveSnapshot>("/api/live/snapshot").then(accept).catch(lost);
+        timer = window.setTimeout(poll, POLL_MS);
+      };
+      poll();
+      document.addEventListener("visibilitychange", poll);
+      return () => {
+        closed = true;
+        window.clearTimeout(timer);
+        document.removeEventListener("visibilitychange", poll);
+      };
+    }
+
     fetchJson<LiveSnapshot>("/api/live/snapshot").then(accept).catch(() => undefined);
     const source = new EventSource("/api/live/stream");
     source.onmessage = (event) => accept(JSON.parse(event.data) as LiveSnapshot);
     // EventSource reconnects by itself; meanwhile the UI keeps the last data and says it's stale.
-    source.onerror = () => !closed && setState((s) => ({ ...s, connected: false }));
+    source.onerror = lost;
     return () => {
       closed = true;
       source.close();
