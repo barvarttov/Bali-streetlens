@@ -89,7 +89,7 @@ motorcycle/car/bus/truck crossing (Shift = outbound), 1–9 pick the count line,
 The hosted site has no torch, so AGA runs on the vision machine and the site reaches it through a Cloudflare tunnel.
 
 1. Install `cloudflared` (https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/).
-2. `powershell -ExecutionPolicy Bypass -File toolsun-live.ps1` starts the backend and the tunnel and prints a link like
+2. `powershell -ExecutionPolicy Bypass -File tools\run-live.ps1` starts the backend and the tunnel and prints a link like
    `https://bali-streetlens.vercel.app/langsung?api=https://<words>.trycloudflare.com`. Open it once per browser; the address is remembered.
 3. `powershell -ExecutionPolicy Bypass -File tools\install-autostart.ps1` makes this happen at every login (`-Remove` undoes it).
    The latest link is in `%LOCALAPPDATA%\streetlens-live\share-link.txt`. A quick tunnel gets a new address on every start.
