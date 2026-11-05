@@ -63,6 +63,10 @@ export interface CameraConfig {
   name: string;
   google_maps_url: string | null;
   world_origin?: string;
+  /** [lng, lat] of world (0, 0), written by the calibration tool so meters map back onto the map. */
+  world_origin_lnglat?: [number, number] | null;
+  /** Size of the image the pixels were picked on; the analysed video must have the same frame size. */
+  image_size_px?: [number, number] | null;
   road_polygon_px: Px[];
   count_lines: CountLine[];
   queue_regions: QueueRegion[];

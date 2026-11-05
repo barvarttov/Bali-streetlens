@@ -340,11 +340,12 @@ Video mentah **hanya** muncul di sini, untuk keperluan tim.
   - Sinkron dengan jam video. Galat hold-out dan sisa fit ditampilkan dalam meter.
   - Kendaraan yang hilang dari pelacak tampil abu-abu, lalu dihapus setelah 1 detik.
   - Tanpa kalibrasi, 3D tidak digambar dan muncul petunjuk cara mengisinya.
-- **Kalibrasi (Hari 3, bersama Person B):**
-  - Klik titik di gambar kamera dan pasangannya di peta.
-  - Galat setiap titik ditampilkan dalam meter, dengan target di bawah 1,5 m.
-  - Ada alat untuk menggambar garis hitung dan area antrean.
-  - Hasilnya disimpan ke `config/<kamera>.yaml`.
+- **Kalibrasi (`/tim/kalibrasi`, sudah jadi):**
+  - Buka tangkapan layar CCTV atau video (lalu pilih satu frame). Gambar hanya dibuka di browser, tidak diunggah.
+  - Klik tanda di gambar, lalu tempel koordinatnya dari satelit Google Maps (klik kanan, salin "lat, lng"). Koordinat diubah ke meter dari titik asal (X timur, Y utara).
+  - 8–10 titik fit dan 3 titik hold-out. Galat setiap titik tampil dalam meter, dengan target di bawah 1,5 m. Grid meter hasil fit diproyeksikan ke gambar, dan denah dari atas ikut digambar, supaya kesalahan terlihat.
+  - Ada alat untuk menggambar poligon jalan, garis hitung (dengan arah datang dari lengan simpang), dan area antrean.
+  - Hasilnya diunduh sebagai `config/<kamera>.yaml`. Draf tersimpan otomatis di browser, dan config yang sudah ada bisa dibuka lagi.
 
 ---
 
@@ -422,7 +423,7 @@ Video mentah **hanya** muncul di sini, untuk keperluan tim.
 | Kembaran 3D: observations.json → homografi → posisi 3D, sinkron video | /tim/putar | ✅ jadi (diuji dengan klip + kalibrasi sintetis) |
 | **Kendaraan 3D bergerak langsung** | Simpang | 🟡 Demo jadi (ilustrasi dari angka langsung). Posisi asli menunggu data kamera + kalibrasi |
 | **Kamera asli langsung** (menggantikan data sintetis) | Backend | ⏳ Person A |
-| Alat kalibrasi | /tim | ⏳ Hari 3 |
+| Alat kalibrasi | /tim/kalibrasi | ✅ jadi (diuji dengan gambar uji ber-geometri pasti: galat hold-out 0,05 m). Kalibrasi 6 kamera asli menunggu tangkapan layar CCTV |
 | Rute A → B, sampai 3 pilihan, sadar simpang macet + Google Maps | Tombol RUTE / Rute ke sini | ✅ jadi |
 | Tanya lalu lintas: asisten AI gratis (Groq, cadangan NVIDIA) dari data sendiri | Tombol TANYA | ✅ jadi (aktif setelah kunci gratis diisi di `.env`) |
 | Putar ulang 30 menit | Simpang | ⏳ Hari 4 |

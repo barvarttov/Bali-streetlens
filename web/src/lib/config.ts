@@ -25,6 +25,8 @@ export function normalizeConfig(raw: unknown): CameraConfig {
     name: c.name ?? c.camera_id,
     google_maps_url: c.google_maps_url ?? null,
     world_origin: c.world_origin,
+    world_origin_lnglat: c.world_origin_lnglat ?? null,
+    image_size_px: c.image_size_px ?? null,
     road_polygon_px: c.road_polygon_px ?? [],
     count_lines: countLines,
     queue_regions: c.queue_regions ?? [],

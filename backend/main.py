@@ -209,6 +209,18 @@ def get_cameras() -> Any:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+@app.get("/api/cameras/{camera_id}/config")
+def get_camera_config(camera_id: str) -> Any:
+    """config/<camera_id>.yaml as JSON, for the calibration tool to continue an earlier calibration."""
+    path = CONFIG_DIR / f"{Path(camera_id).name}.yaml"
+    if not path.is_file():
+        raise HTTPException(404, f"Belum ada config/{path.name}")
+    try:
+        return yaml.safe_load(path.read_text(encoding="utf-8"))
+    except yaml.YAMLError as exc:
+        raise HTTPException(500, f"config/{path.name} is not valid YAML: {exc}") from exc
+
+
 @app.get("/api/live/snapshot")
 def live_snapshot() -> dict[str, Any]:
     return live.snapshot(_corridor())

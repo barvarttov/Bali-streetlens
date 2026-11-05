@@ -1,0 +1,706 @@
+/* Calibration tool (/tim/kalibrasi) and its entry on the team index. Lembar Rupabumi: paper, olive
+   ink for rules and your picks, near-black text, 1px rules, square corners. States are printed
+   marks (ring / half / full) with a word, never colour alone. */
+
+.team-tool {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--m) * 6);
+  margin-top: calc(var(--m) * 8);
+  padding: calc(var(--m) * 5) 0;
+  border-top: var(--line) solid var(--ink);
+  border-bottom: 1px solid var(--abu);
+}
+.team-tool h2 {
+  font: 900 20px/1.2 var(--font);
+}
+.team-tool p {
+  margin-top: calc(var(--m) * 1.5);
+  max-width: 58ch;
+  font-size: 14px;
+  color: var(--abu-ink);
+}
+.team-tool .btn {
+  flex: none;
+}
+.team-subhead {
+  margin-top: calc(var(--m) * 10);
+  font: 900 12px/1 var(--font);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+.team-subhead ~ .clip-list {
+  margin-top: calc(var(--m) * 3);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.link-btn {
+  padding: 0;
+  font: 700 13px/1.45 var(--font);
+  color: var(--text);
+  background: none;
+  border: 0;
+  text-decoration: underline;
+  text-decoration-color: var(--ink);
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+.link-btn:hover {
+  color: var(--ink-hover);
+}
+.link-btn.is-danger {
+  color: var(--macet-ink);
+  text-decoration-color: currentColor;
+}
+
+.calib-workspace {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 412px;
+  gap: calc(var(--m) * 2);
+}
+
+.calib-mark {
+  flex: none;
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--ink);
+  border-radius: 50%;
+}
+.calib-mark.is-half {
+  background: linear-gradient(90deg, var(--ink) 50%, transparent 50%);
+}
+.calib-mark.is-full {
+  background: var(--ink);
+}
+.calib-verdict {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--m) * 2);
+  margin-left: auto;
+  font: 800 14px/1 var(--font);
+}
+
+/* Stage: the camera picture and its drawing tools */
+.calib-stage-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.calib-modebar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--m) * 2);
+  padding: calc(var(--m) * 2) calc(var(--m) * 2.5);
+  border-bottom: 1px solid var(--abu);
+}
+.calib-modes {
+  display: flex;
+  align-items: center;
+}
+.calib-modes .chip {
+  gap: calc(var(--m) * 2);
+}
+.calib-modes .chip + .chip {
+  border-left: 0;
+}
+.calib-modes .chip:hover:not([aria-pressed="true"]) {
+  background: var(--paper-2);
+}
+.calib-modes .chip .tabular {
+  min-width: 1.2em;
+  font-weight: 900;
+}
+.calib-modes-note {
+  font-size: 13px;
+  color: var(--abu-ink);
+}
+.calib-view-tools {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--m) * 2);
+}
+.calib-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: calc(var(--m) * 2);
+  font: 700 13px/1 var(--font);
+  cursor: pointer;
+}
+.calib-toggle input {
+  accent-color: var(--ink);
+}
+.calib-toggle:has(input:disabled) {
+  color: var(--abu-ink);
+  cursor: not-allowed;
+}
+.calib-icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  color: var(--text);
+  background: var(--kapur);
+  border: var(--line) solid var(--ink);
+  cursor: pointer;
+}
+.calib-icon-btn:hover {
+  background: var(--paper-2);
+}
+.calib-icon-btn:active {
+  background: var(--paper-3);
+}
+.calib-icon-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.calib-icon-btn.is-small {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border-color: var(--abu);
+}
+.calib-icon-btn.is-small:hover {
+  border-color: var(--ink);
+}
+.calib-hint {
+  padding: calc(var(--m) * 2) calc(var(--m) * 2.5);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--on-brand);
+  background: var(--ink);
+}
+
+.calib-stage {
+  position: relative;
+  flex: 1;
+  min-height: 320px;
+  background: #05090c; /* camera letterbox stays dark */
+}
+.calib-stage.is-drop::after {
+  content: "";
+  position: absolute;
+  inset: calc(var(--m) * 3);
+  border: 2px dashed var(--kapur);
+  pointer-events: none;
+}
+.calib-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: crosshair;
+}
+.calib-canvas.mode-none {
+  cursor: default;
+}
+.calib-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--m) * 3);
+  padding: calc(var(--m) * 8);
+  text-align: center;
+  color: var(--kapur);
+  background:
+    repeating-linear-gradient(0deg, transparent 0 47px, rgba(255, 255, 255, 0.06) 47px 48px),
+    repeating-linear-gradient(90deg, transparent 0 47px, rgba(255, 255, 255, 0.06) 47px 48px),
+    #05090c;
+}
+.calib-empty-title {
+  font: 900 20px/1.25 var(--font);
+  letter-spacing: -0.01em;
+}
+.calib-empty .muted {
+  max-width: 52ch;
+  font-size: 14px;
+  color: #c9d0d4; /* 11.9:1 on the letterbox */
+}
+.calib-empty .btn {
+  margin-top: var(--m);
+  border-color: var(--kapur);
+}
+.calib-error {
+  margin-top: var(--m);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--macet-ink);
+}
+.calib-empty .calib-error {
+  padding: var(--m) calc(var(--m) * 2);
+  color: var(--text);
+  background: var(--kapur);
+}
+.calib-video {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: #05090c;
+}
+.calib-video video {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  object-fit: contain;
+}
+.calib-video-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: calc(var(--m) * 3);
+  padding: calc(var(--m) * 2) calc(var(--m) * 3);
+  font-size: 13px;
+  color: var(--text);
+  background: var(--kapur);
+}
+
+.calib-readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--m) * 2) calc(var(--m) * 6);
+  min-height: 40px;
+  padding: calc(var(--m) * 2) calc(var(--m) * 2.5);
+  font-size: 12.5px;
+  color: var(--abu-ink);
+  border-top: 1px solid var(--abu);
+}
+.calib-readout > span:nth-child(2) {
+  color: var(--text);
+  font-weight: 700;
+}
+.calib-keys {
+  margin-left: auto;
+}
+.calib-keys kbd {
+  min-width: 0;
+  height: 22px;
+  margin: 0 4px 0 10px;
+  padding: 0 5px;
+  font-size: 11px;
+  border-bottom-width: 2px;
+}
+.calib-stage-panel .pane-warning {
+  bottom: calc(var(--m) * 14);
+  line-height: 1.45;
+}
+.pane-warning .link-btn {
+  color: var(--kapur);
+  text-decoration-color: var(--kapur);
+}
+
+/* Side panel */
+.calib-side {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.calib-tabs {
+  display: flex;
+  border-bottom: var(--line) solid var(--ink);
+}
+.calib-tabs button {
+  flex: 1;
+  min-height: 44px;
+  padding: 0 calc(var(--m) * 2);
+  font: 800 13.5px/1 var(--font);
+  color: var(--abu-ink);
+  background: var(--kapur);
+  border: 0;
+  border-right: 1px solid var(--abu);
+  cursor: pointer;
+}
+.calib-tabs button:last-child {
+  border-right: 0;
+}
+.calib-tabs button:hover:not([aria-selected="true"]) {
+  color: var(--text);
+  background: var(--paper-2);
+}
+.calib-tabs button[aria-selected="true"] {
+  color: var(--on-brand);
+  background: var(--ink);
+}
+.calib-tabs button:focus-visible {
+  outline-color: var(--kapur);
+  outline-offset: -5px;
+}
+.calib-side-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0 calc(var(--m) * 4) calc(var(--m) * 6);
+}
+.calib-section {
+  padding-top: calc(var(--m) * 6);
+}
+.calib-section + .calib-section {
+  margin-top: var(--m);
+  border-top: 1px solid var(--abu);
+}
+.calib-section .panel-title {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: calc(var(--m) * 2);
+  margin: 0 0 calc(var(--m) * 3);
+}
+.calib-section .panel-title .muted {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+.calib-field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: calc(var(--m) * 3);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--abu-ink);
+}
+.calib-field input,
+.calib-field select,
+.calib-points input,
+.calib-id {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
+  font: 500 14px var(--font);
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  background: var(--kapur);
+  border: var(--line) solid var(--ink-2);
+  border-radius: 0;
+}
+.calib-field input:hover,
+.calib-field select:hover,
+.calib-points input:hover,
+.calib-id:hover {
+  border-color: var(--ink);
+}
+.calib-field input:focus-visible,
+.calib-field select:focus-visible,
+.calib-points input:focus-visible,
+.calib-id:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 0;
+  border-color: var(--ink);
+}
+.calib-field input::placeholder,
+.calib-points input::placeholder {
+  color: #6b7378; /* 4.8:1 on paper */
+}
+.calib [aria-invalid="true"] {
+  border-style: dashed;
+  border-color: var(--macet-ink);
+}
+.calib-field.is-inline {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: calc(var(--m) * 3);
+  margin: calc(var(--m) * 2) 0 0;
+}
+.calib-field.is-inline select {
+  min-height: 34px;
+  font-size: 13px;
+}
+.calib-note {
+  margin-top: calc(var(--m) * 2);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--abu-ink);
+}
+.calib-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: calc(var(--m) * 2) calc(var(--m) * 5);
+}
+.calib-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 700 13px/1.45 var(--font);
+  text-decoration-color: var(--ink);
+}
+
+.calib-points {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+.calib-points th,
+.calib-points td {
+  padding: 6px 4px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--abu);
+}
+.calib-points thead th {
+  padding-bottom: var(--m);
+  font: 900 11px/1 var(--font);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--abu-ink);
+  border-bottom: var(--line) solid var(--ink);
+}
+.calib-points .num {
+  text-align: right;
+}
+.calib-points td:nth-child(2) {
+  white-space: nowrap;
+  color: var(--abu-ink);
+}
+.calib-points td:nth-child(3) {
+  width: 100%;
+}
+.calib-points input {
+  min-height: 32px;
+  padding: 0 8px;
+  font-size: 13px;
+}
+.calib-points tbody tr {
+  cursor: pointer;
+}
+.calib-points tbody tr:hover {
+  background: var(--paper-2);
+}
+.calib-points tbody tr.is-selected {
+  background: color-mix(in srgb, var(--ink) 9%, var(--kapur));
+}
+.calib-points td.is-over,
+.calib-stats dd.is-over {
+  font-weight: 900;
+  text-decoration: underline wavy var(--macet-ink);
+  text-underline-offset: 0.25em;
+}
+.calib-pt {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 22px;
+  padding: 0 4px;
+  font: 900 11.5px/1 var(--font);
+}
+.calib-pt.fit {
+  color: var(--on-brand);
+  background: var(--ink);
+}
+.calib-pt.holdout {
+  color: var(--text);
+  border: 1.5px solid var(--ink);
+  border-radius: 11px;
+}
+.calib-cell-error {
+  display: block;
+  margin-top: 4px;
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--macet-ink);
+}
+
+.calib-result {
+  padding: calc(var(--m) * 3) calc(var(--m) * 3.5);
+  font-size: 13.5px;
+  line-height: 1.45;
+  border: 1px solid var(--abu);
+}
+.calib-result.is-pass {
+  border-color: var(--ink);
+  background: color-mix(in srgb, var(--ink) 8%, var(--kapur));
+}
+.calib-result-title {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--m) * 2);
+  margin-bottom: var(--m);
+  font: 900 15px/1.2 var(--font);
+}
+.calib-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: calc(var(--m) * 3) 0 0;
+  border-top: 1px solid var(--abu);
+}
+.calib-stats div {
+  padding: calc(var(--m) * 2) 0;
+  border-bottom: 1px solid var(--abu);
+}
+.calib-stats div:nth-child(odd) {
+  padding-right: calc(var(--m) * 3);
+  border-right: 1px solid var(--abu);
+}
+.calib-stats div:nth-child(even) {
+  padding-left: calc(var(--m) * 3);
+}
+.calib-stats dt {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--abu-ink);
+}
+.calib-stats dd {
+  margin: 2px 0 0;
+  font: 800 17px/1.2 var(--font);
+}
+
+.calib-plan {
+  margin: calc(var(--m) * 4) 0 0;
+}
+.calib-plan svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  background:
+    repeating-linear-gradient(0deg, transparent 0 21px, var(--paper-2) 21px 22px),
+    repeating-linear-gradient(90deg, transparent 0 21px, var(--paper-2) 21px 22px),
+    var(--kapur);
+  border: 1px solid var(--abu);
+}
+.calib-plan text {
+  font: 800 10.5px var(--font);
+  fill: var(--text);
+}
+.plan-road {
+  fill: color-mix(in srgb, var(--ink) 12%, transparent);
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+.plan-line {
+  stroke: var(--text);
+  stroke-width: 2;
+}
+.plan-origin line,
+.plan-scale line {
+  stroke: var(--text);
+  stroke-width: 1.5;
+}
+.plan-pt rect {
+  fill: var(--ink);
+}
+.plan-pt.is-holdout circle {
+  fill: var(--kapur);
+  stroke: var(--ink);
+  stroke-width: 1.75;
+}
+.plan-north path {
+  fill: var(--text);
+}
+
+.calib-list {
+  margin: calc(var(--m) * 3) 0 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--abu);
+}
+.calib-list li {
+  padding: calc(var(--m) * 3) 0;
+  border-bottom: 1px solid var(--abu);
+}
+.calib-list li.is-selected {
+  padding-left: calc(var(--m) * 3);
+  box-shadow: inset 1px 0 0 var(--ink);
+  background: color-mix(in srgb, var(--ink) 6%, var(--kapur));
+}
+.calib-list-row {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--m) * 2);
+}
+.calib-id {
+  flex: 1;
+  min-height: 34px;
+  font-weight: 800;
+}
+
+.calib-checks {
+  display: grid;
+  gap: calc(var(--m) * 2.5);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 14px;
+}
+.calib-checks li {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--m) * 2.5);
+  color: var(--abu-ink);
+}
+.calib-checks li.is-ok {
+  color: var(--text);
+  font-weight: 700;
+}
+.calib-save {
+  display: flex;
+  gap: calc(var(--m) * 2);
+}
+.calib-save .btn {
+  min-height: 44px;
+  font-size: 14px;
+}
+.calib-save .btn-primary {
+  flex: 1;
+}
+.calib-yaml {
+  max-height: 340px;
+  margin: calc(var(--m) * 3) 0 0;
+  padding: calc(var(--m) * 3);
+  overflow: auto;
+  font: 500 12px/1.55 ui-monospace, "Cascadia Mono", Consolas, monospace; /* it is code: the file itself */
+  color: var(--text);
+  background: var(--paper-2);
+  border: 1px solid var(--abu);
+  white-space: pre;
+}
+
+@media (max-width: 1100px) {
+  .calib-workspace {
+    grid-template-columns: 1fr;
+  }
+  .calib-stage {
+    min-height: 60vh;
+  }
+  .calib-side,
+  .calib-side-body {
+    overflow: visible;
+  }
+  .calib-keys {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .team-tool {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .calib .tool-bar {
+    gap: calc(var(--m) * 2);
+  }
+  .calib-verdict {
+    margin-left: 0;
+  }
+}

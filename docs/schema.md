@@ -63,6 +63,8 @@ camera_id: cam01
 name: "TODO"
 google_maps_url: "TODO"
 world_origin: "TODO: which landmark is (0, 0)"
+world_origin_lnglat: [lng, lat]    # optional: where (0, 0) is on the map (written by /tim/kalibrasi)
+image_size_px: [1280, 720]         # optional: size of the image the pixels were picked on; the video must match
 road_polygon_px: []
 count_lines:                       # one per approach; directed p1 -> p2 (see below)
   - id: north_in
