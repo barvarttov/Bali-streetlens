@@ -20,6 +20,7 @@ if (-not $up) {
 } else { Write-Host "Backend already running on port $port" }
 
 $cf = Get-Command cloudflared -ErrorAction SilentlyContinue
+if (-not $cf) { $local = Join-Path $env:USERPROFILE "bin\cloudflared.exe"; if (Test-Path $local) { $cf = Get-Command $local } }
 if (-not $cf) {
   Write-Host ""
   Write-Host "cloudflared is not installed, so there is no public link yet."
