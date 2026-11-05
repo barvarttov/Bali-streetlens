@@ -1,0 +1,12 @@
+{
+  "name": "bali-streetlens",
+  "private": true,
+  "description": "Shortcuts so commands run from the project root. The app itself lives in web/.",
+  "scripts": {
+    "dev": "npm --prefix web run dev",
+    "build": "npm --prefix web run build",
+    "test": "npm --prefix web test",
+    "typecheck": "npm --prefix web run typecheck",
+    "demo": "npm --prefix web run build && .venv\\Scripts\\python -m uvicorn backend.main:app --port 8000"
+  }
+}

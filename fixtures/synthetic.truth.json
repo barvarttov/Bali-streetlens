@@ -1,0 +1,466 @@
+{
+  "note": "Ground truth for fixtures/synthetic.json, computed from noise-free positions. NOT real traffic.",
+  "fps": 25,
+  "frame_count": 1000,
+  "counts": {
+    "nb_stop": {
+      "in": {
+        "motorcycle": 20,
+        "car": 10
+      },
+      "out": {}
+    },
+    "sb_lane": {
+      "in": {
+        "motorcycle": 19,
+        "car": 10
+      },
+      "out": {}
+    }
+  },
+  "crossing_events": [
+    {
+      "track_id": 1,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 87
+    },
+    {
+      "track_id": 2,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 67
+    },
+    {
+      "track_id": 3,
+      "cls": "car",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 112
+    },
+    {
+      "track_id": 4,
+      "cls": "car",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 86
+    },
+    {
+      "track_id": 5,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 129
+    },
+    {
+      "track_id": 6,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 106
+    },
+    {
+      "track_id": 7,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 140
+    },
+    {
+      "track_id": 8,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 602
+    },
+    {
+      "track_id": 9,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 178
+    },
+    {
+      "track_id": 10,
+      "cls": "car",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 203
+    },
+    {
+      "track_id": 11,
+      "cls": "car",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 602
+    },
+    {
+      "track_id": 12,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 611
+    },
+    {
+      "track_id": 13,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 244
+    },
+    {
+      "track_id": 14,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 620
+    },
+    {
+      "track_id": 15,
+      "cls": "car",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 306
+    },
+    {
+      "track_id": 16,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 629
+    },
+    {
+      "track_id": 17,
+      "cls": "car",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 620
+    },
+    {
+      "track_id": 18,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 300
+    },
+    {
+      "track_id": 19,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 638
+    },
+    {
+      "track_id": 20,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 647
+    },
+    {
+      "track_id": 21,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 365
+    },
+    {
+      "track_id": 22,
+      "cls": "car",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 638
+    },
+    {
+      "track_id": 23,
+      "cls": "car",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 409
+    },
+    {
+      "track_id": 24,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 656
+    },
+    {
+      "track_id": 25,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 404
+    },
+    {
+      "track_id": 26,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 429
+    },
+    {
+      "track_id": 27,
+      "cls": "car",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 499
+    },
+    {
+      "track_id": 28,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 484
+    },
+    {
+      "track_id": 29,
+      "cls": "car",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 656
+    },
+    {
+      "track_id": 30,
+      "cls": "car",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 545
+    },
+    {
+      "track_id": 31,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 521
+    },
+    {
+      "track_id": 32,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 572
+    },
+    {
+      "track_id": 33,
+      "cls": "car",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 611
+    },
+    {
+      "track_id": 34,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 638
+    },
+    {
+      "track_id": 35,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 665
+    },
+    {
+      "track_id": 36,
+      "cls": "car",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 676
+    },
+    {
+      "track_id": 37,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 696
+    },
+    {
+      "track_id": 38,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 684
+    },
+    {
+      "track_id": 39,
+      "cls": "car",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 719
+    },
+    {
+      "track_id": 40,
+      "cls": "car",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 759
+    },
+    {
+      "track_id": 41,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 716
+    },
+    {
+      "track_id": 42,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 765
+    },
+    {
+      "track_id": 43,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 746
+    },
+    {
+      "track_id": 44,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 786
+    },
+    {
+      "track_id": 45,
+      "cls": "car",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 813
+    },
+    {
+      "track_id": 46,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 782
+    },
+    {
+      "track_id": 47,
+      "cls": "car",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 801
+    },
+    {
+      "track_id": 49,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 826
+    },
+    {
+      "track_id": 50,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 826
+    },
+    {
+      "track_id": 51,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 855
+    },
+    {
+      "track_id": 52,
+      "cls": "car",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 885
+    },
+    {
+      "track_id": 53,
+      "cls": "car",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 875
+    },
+    {
+      "track_id": 54,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 893
+    },
+    {
+      "track_id": 55,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 873
+    },
+    {
+      "track_id": 56,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 924
+    },
+    {
+      "track_id": 57,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 937
+    },
+    {
+      "track_id": 59,
+      "cls": "motorcycle",
+      "line": "sb_lane",
+      "dir": "in",
+      "frame": 983
+    },
+    {
+      "track_id": 60,
+      "cls": "motorcycle",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 980
+    },
+    {
+      "track_id": 61,
+      "cls": "car",
+      "line": "nb_stop",
+      "dir": "in",
+      "frame": 998
+    }
+  ],
+  "excluded_tracks": [
+    {
+      "track_id": 48,
+      "reason": "visible 3 frames < min_track_frames 5"
+    }
+  ],
+  "debounce_tracks": [
+    {
+      "track_id": 51,
+      "note": "waits 1.2 s at nb_stop with a jittery box; must count exactly once"
+    }
+  ],
+  "signal_truth": {
+    "nb_stop": {
+      "red_intervals_s": [
+        [
+          6,
+          24
+        ]
+      ]
+    }
+  },
+  "queue_intervals": [
+    {
+      "region": "northbound_queue",
+      "start_t": 19.96,
+      "end_t": 24,
+      "expected_label": "stopped_no_flow"
+    }
+  ]
+}

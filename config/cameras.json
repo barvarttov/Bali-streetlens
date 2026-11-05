@@ -1,0 +1,825 @@
+{
+ "source": "Peta CCTV, Bali Satu Data (Diskominfos Provinsi Bali), balisatudata.baliprov.go.id/api/v1/report-cctv",
+ "retrieved": "2026-11-02",
+ "cameras": [
+  {
+   "id": "abiansemal-co1-cctv1",
+   "name": "Abiansemal-CO1 CCTV1",
+   "lnglat": [
+    115.144985,
+    -8.530491
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-387",
+   "name": "Barat Tugu Singa",
+   "lnglat": [
+    115.092331,
+    -8.124906
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "baruna-disaster-shelter-co1-cctv1",
+   "name": "Baruna Disaster Shelter-CO1 CCTV1",
+   "lnglat": [
+    115.166758,
+    -8.724733
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "baruna-disaster-shelter-co1-cctv2",
+   "name": "Baruna Disaster Shelter-CO1 CCTV2",
+   "lnglat": [
+    115.166758,
+    -8.724733
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pura-besakih-jalan-masuk-utama",
+   "name": "Besakih (Jalan Masuk Utama)",
+   "lnglat": [
+    115.450642,
+    -8.374565
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pura-besakih-pintu-keluar-pewaregan",
+   "name": "Besakih (Pintu Keluar Pewaregan)",
+   "lnglat": [
+    115.45186,
+    -8.373551
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pura-besakih-pos-polisi",
+   "name": "Besakih (Pos Polisi)",
+   "lnglat": [
+    115.450505,
+    -8.374489
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pura-besakih-tangga-masuk-utama",
+   "name": "Besakih (Tangga Masuk Utama)",
+   "lnglat": [
+    115.450699,
+    -8.374588
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pura-besakih-tangga-timur-penataran",
+   "name": "Besakih (Tangga Timur Penataran)",
+   "lnglat": [
+    115.452788,
+    -8.373808
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "catus-pata",
+   "name": "Catus Pata",
+   "lnglat": [
+    115.401152,
+    -8.535314
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-bale-bengong",
+   "name": "CCTV BALE BENGONG",
+   "lnglat": [
+    115.123243,
+    -8.537551
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-belakang-garuda",
+   "name": "CCTV BELAKANG GARUDA",
+   "lnglat": [
+    115.123831,
+    -8.537487
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-gedung-mario-1",
+   "name": "CCTV GEDUNG MARIO 1",
+   "lnglat": [
+    115.123243,
+    -8.537551
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-gedung-mario-2",
+   "name": "CCTV GEDUNG MARIO 2",
+   "lnglat": [
+    115.043415,
+    -8.537367
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-gedung-mario-3",
+   "name": "CCTV GEDUNG MARIO 3",
+   "lnglat": [
+    115.125818,
+    -8.537556
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "parkir-besakih",
+   "name": "CCTV Parkir Besakih",
+   "lnglat": [
+    115.446331,
+    -8.380386
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-selatan-garuda",
+   "name": "CCTV SELATAN GARUDA",
+   "lnglat": [
+    115.121792,
+    -8.537487
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-taman-kota-1",
+   "name": "CCTV TAMAN KOTA 1",
+   "lnglat": [
+    115.123831,
+    -8.537487
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-taman-kota-2",
+   "name": "CCTV TAMAN KOTA 2",
+   "lnglat": [
+    115.123831,
+    -8.537487
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-wifi-corne-dangin-carik-1",
+   "name": "CCTV WIFI CORNE DANGIN CARIK 1",
+   "lnglat": [
+    115.13288,
+    -8.537596
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-wifi-corner-dangin-carik-2",
+   "name": "CCTV WIFI CORNER DANGIN CARIK 2",
+   "lnglat": [
+    115.130842,
+    -8.537596
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-wifi-corner-gedung-maario-1",
+   "name": "CCTV WIFI CORNER GEDUNG MAARIO 1",
+   "lnglat": [
+    115.123243,
+    -8.537551
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-wifi-corner-gedung-maario-2",
+   "name": "CCTV WIFI CORNER GEDUNG MAARIO 2",
+   "lnglat": [
+    115.123243,
+    -8.537551
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "depan-popies-2--sky-garden",
+   "name": "Depan Popies 2 / Sky Garden",
+   "lnglat": [
+    115.174464,
+    -8.717571
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "depan-pura-goa-lawah",
+   "name": "Depan Pura Goa Lawah",
+   "lnglat": [
+    115.467135,
+    -8.552014
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "jalan-seminyak-depan-swalayan-bintanggg-keraton",
+   "name": "Jalan Seminyak Depan Swalayan Bintang/Gg Keraton",
+   "lnglat": [
+    115.163917,
+    -8.693063
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "jl-arjuna-parkiran-pantai-doublesix",
+   "name": "Jl Arjuna Parkiran Pantai DoubleSix",
+   "lnglat": [
+    115.160055,
+    -8.69305
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "jl-raya-tuban-jl-kediri",
+   "name": "Jl Raya Tuban, Jl Kediri",
+   "lnglat": [
+    115.178163,
+    -8.737453
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "jl-pantai-kuta-depan-hardrock",
+   "name": "Jl. Pantai Kuta, Depan Hardrock",
+   "lnglat": [
+    115.169737,
+    -8.721987
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "kantor-lurah-legian-co1-cctv1",
+   "name": "Kantor Lurah Legian-CO1 CCTV1",
+   "lnglat": [
+    115.17287,
+    -8.706033
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "kantor-lurah-seminyak",
+   "name": "Kantor Lurah Seminyak",
+   "lnglat": [
+    115.175745,
+    -8.687924
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "monumen-ground-zeropojok-panin",
+   "name": "Monumen Ground Zero/Pojok Panin",
+   "lnglat": [
+    115.174562,
+    -8.717386
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pantai-jerman-co1-cctv1",
+   "name": "Pantai Jerman-CO1 CCTV1",
+   "lnglat": [
+    115.160647,
+    -8.735325
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pantai-jerman-co1-cctv2",
+   "name": "Pantai Jerman-CO1 CCTV2",
+   "lnglat": [
+    115.16267,
+    -8.736187
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pantai-jerman-co2-cctv1",
+   "name": "Pantai Jerman-CO2 CCTV1",
+   "lnglat": [
+    115.163004,
+    -8.73625
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pantai-jerman-co2-cctv2",
+   "name": "Pantai Jerman-CO2 CCTV2",
+   "lnglat": [
+    115.163004,
+    -8.73625
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pantai-jerman-co3-cctv1",
+   "name": "Pantai Jerman-CO3 CCTV1",
+   "lnglat": [
+    115.163455,
+    -8.734832
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pantai-jimbaran-co1-cctv1",
+   "name": "Pantai Jimbaran-CO1 CCTV1",
+   "lnglat": [
+    115.159893,
+    -8.775058
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pantai-jimbaran-co1-cctv2",
+   "name": "Pantai Jimbaran-CO1 CCTV2",
+   "lnglat": [
+    115.159893,
+    -8.775058
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pantai-kedongan-co1-cctv1",
+   "name": "Pantai Kedongan-CO1 CCTV1",
+   "lnglat": [
+    115.163347,
+    -8.761795
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pantai-kedongan-co1-cctv2",
+   "name": "Pantai Kedongan-CO1 CCTV2",
+   "lnglat": [
+    115.163347,
+    -8.761795
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pantai-kuta-c01-cctv1",
+   "name": "Pantai Kuta-C01 CCTV1",
+   "lnglat": [
+    115.166966,
+    -8.72265
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pantai-kuta-c01-cctv2",
+   "name": "Pantai Kuta-C01 CCTV2",
+   "lnglat": [
+    115.165145,
+    -8.706006
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pantai-kuta-c01-cctv3",
+   "name": "Pantai Kuta-C01 CCTV3",
+   "lnglat": [
+    115.165145,
+    -8.705963
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pantai-kuta-c04-cctv1",
+   "name": "Pantai Kuta-C04 CCTV1",
+   "lnglat": [
+    115.166966,
+    -8.72265
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pantai-kuta-c05-cctv1",
+   "name": "Pantai Kuta-C05 CCTV1",
+   "lnglat": [
+    115.166966,
+    -8.72265
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pantai-kuta-c05-cctv2",
+   "name": "Pantai Kuta-C05 CCTV2",
+   "lnglat": [
+    115.166966,
+    -8.72265
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "parkiran-pantai-legian",
+   "name": "Parkiran Pantai Legian",
+   "lnglat": [
+    115.16605,
+    -8.706469
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-383",
+   "name": "Pasar Anyar",
+   "lnglat": [
+    115.088962,
+    -8.108105
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pasar-senggol",
+   "name": "Pasar Senggol",
+   "lnglat": [
+    115.399223,
+    -8.534843
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pasar-seni-kuta-c01-cctv1",
+   "name": "Pasar Seni Kuta-C01 CCTV1",
+   "lnglat": [
+    115.169594,
+    -8.72467
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pasar-seni-kuta-c01-cctv2",
+   "name": "Pasar Seni Kuta-C01 CCTV2",
+   "lnglat": [
+    115.169594,
+    -8.72467
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-325",
+   "name": "Pasar Seni, Jl Dewi Sartika, Kuta",
+   "lnglat": [
+    115.171491,
+    -8.724606
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "patih-jelantik-majapahit",
+   "name": "Patih Jelantik Majapahit",
+   "lnglat": [
+    115.176396,
+    -8.715927
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "perbatasan-klungkung-gianyar",
+   "name": "Perbatasan Klungkung-Gianyar",
+   "lnglat": [
+    115.361162,
+    -8.54345
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "perempatan-banjarangkan-tusan",
+   "name": "Perempatan Banjarangkan-Tusan",
+   "lnglat": [
+    115.361261,
+    -8.541817
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "perempatan-galiran",
+   "name": "Perempatan Galiran",
+   "lnglat": [
+    115.399607,
+    -8.545084
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "perempatan-pasar-satria",
+   "name": "Perempatan Pasar Satria",
+   "lnglat": [
+    115.412249,
+    -8.537407
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "perempatan-sudirman",
+   "name": "Perempatan Sudirman",
+   "lnglat": [
+    114.624774,
+    -8.356737
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "perempatan-tojan",
+   "name": "Perempatan Tojan",
+   "lnglat": [
+    115.379485,
+    -8.557002
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pertigaan-jl-patih-jelantik---jl-dewi-sri",
+   "name": "Pertigaan Jl. Patih Jelantik - Jl. Dewi Sri",
+   "lnglat": [
+    115.1741,
+    -8.706305
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pertigaan-kodim",
+   "name": "Pertigaan Kodim",
+   "lnglat": [
+    115.602158,
+    -8.450161
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pertigaan-sman-satu-semarapura",
+   "name": "Pertigaan SMAN Satu Semarapura",
+   "lnglat": [
+    115.392588,
+    -8.541434
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pertigaan-subagan",
+   "name": "Pertigaan Subagan",
+   "lnglat": [
+    115.585422,
+    -8.501743
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-345",
+   "name": "Petang-CO1 CCTV1",
+   "lnglat": [
+    115.21493,
+    -8.407104
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-386",
+   "name": "PTZ Laksmigraha",
+   "lnglat": [
+    115.092659,
+    -8.12444
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "pura-batur",
+   "name": "Pura Batur",
+   "lnglat": [
+    115.335439,
+    -8.255079
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "simpang-bali-beach",
+   "name": "Simpang Bali Beach",
+   "lnglat": [
+    115.259288,
+    -8.682136
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "simpang-benoa",
+   "name": "Simpang benoa",
+   "lnglat": [
+    115.215044,
+    -8.717156
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "simpang-btdc",
+   "name": "Simpang BTDC",
+   "lnglat": [
+    115.222988,
+    -8.798432
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "simpang-kedonganan",
+   "name": "Simpang Kedonganan",
+   "lnglat": [
+    115.178897,
+    -8.761071
+   ],
+   "analyzed": true
+  },
+  {
+   "id": "simpang-lepang",
+   "name": "Simpang Lepang",
+   "lnglat": [
+    115.377115,
+    -8.573944
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "simpang-lima",
+   "name": "Simpang Lima",
+   "lnglat": [
+    115.394877,
+    -8.534306
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "simpang-padang-galak",
+   "name": "Simpang Padang Galak",
+   "lnglat": [
+    115.260769,
+    -8.656987
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "simpang-pamelisan",
+   "name": "Simpang pamelisan",
+   "lnglat": [
+    115.225663,
+    -8.712501
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "simpang-patung-kuda",
+   "name": "Simpang patung kuda",
+   "lnglat": [
+    115.179105,
+    -8.744676
+   ],
+   "analyzed": true
+  },
+  {
+   "id": "simpang-pintu-tol",
+   "name": "Simpang Pintu Tol",
+   "lnglat": [
+    115.212275,
+    -8.790174
+   ],
+   "analyzed": true
+  },
+  {
+   "id": "cctv-385",
+   "name": "Simpang Ponogoro",
+   "lnglat": [
+    115.089742,
+    -8.10963
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "simpang-taman-griya",
+   "name": "Simpang Taman Griya",
+   "lnglat": [
+    115.187741,
+    -8.783959
+   ],
+   "analyzed": true
+  },
+  {
+   "id": "simpang-tanjung-benoa",
+   "name": "Simpang Tanjung Benoa",
+   "lnglat": [
+    115.215653,
+    -8.793432
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "simpang-tirtanadi",
+   "name": "Simpang tirtanadi",
+   "lnglat": [
+    115.254092,
+    -8.704274
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-384",
+   "name": "Simpang Udayana",
+   "lnglat": [
+    115.091754,
+    -8.114964
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "simpang-unud",
+   "name": "Simpang UNUD",
+   "lnglat": [
+    115.178751,
+    -8.781462
+   ],
+   "analyzed": true
+  },
+  {
+   "id": "taman-bencingah-mengwi-co1-cctv1",
+   "name": "Taman Bencingah Mengwi-CO1 CCTV1",
+   "lnglat": [
+    115.167648,
+    -8.544059
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "taman-kota",
+   "name": "Taman Kota",
+   "lnglat": [
+    115.123801,
+    -8.537528
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-382",
+   "name": "Taman Yuwana Asri",
+   "lnglat": [
+    115.079908,
+    -8.115402
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "tanjung-benoa-co1-cctv1",
+   "name": "Tanjung Benoa-CO1 CCTV1",
+   "lnglat": [
+    115.217165,
+    -8.754356
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "cctv-303",
+   "name": "Terminal Cargo Jembrana",
+   "lnglat": [
+    114.6067,
+    -8.355656
+   ],
+   "analyzed": false
+  },
+  {
+   "id": "underpass-ngurah-rai-selatan",
+   "name": "Underpass ngurah rai selatan",
+   "lnglat": [
+    115.183008,
+    -8.745413
+   ],
+   "analyzed": true
+  },
+  {
+   "id": "underpass-ngurah-rai-utara",
+   "name": "Underpass ngurah rai utara",
+   "lnglat": [
+    115.182959,
+    -8.744561
+   ],
+   "analyzed": true
+  },
+  {
+   "id": "cctv-388",
+   "name": "Yudistira",
+   "lnglat": [
+    115.09343,
+    -8.119706
+   ],
+   "analyzed": false
+  }
+ ]
+}

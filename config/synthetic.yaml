@@ -1,0 +1,42 @@
+# SYNTHETIC test camera. Not a real place. Used only by fixtures/synthetic.json.
+# The layout mimics Indonesian left-hand traffic: northbound (moving up the image) keeps
+# to the left of the image, southbound (moving down, towards the camera) to the right.
+# The fixture moves vehicles in straight vertical pixel lanes, so this fake camera looks
+# straight down at the road (no perspective): the road is a rectangle in the image.
+camera_id: synthetic
+name: "Synthetic test junction (not real data)"
+google_maps_url: null
+world_origin: "synthetic: road centre line at the bottom edge of the image (x = 650 px)"
+road_polygon_px: [[380, 0], [920, 0], [920, 720], [380, 720]]
+count_lines:
+  # Each line is an arrow p1 -> p2; "in" = crossing to the left of the arrow on screen.
+  - id: nb_stop
+    px: [[390, 430], [650, 430]]   # drawn left to right, so "in" = moving up = northbound
+    approach: south
+  - id: sb_lane
+    px: [[900, 430], [660, 430]]   # drawn right to left, so "in" = moving down = southbound
+    approach: north
+queue_regions:
+  - id: northbound_queue
+    polygon_px: [[400, 432], [640, 432], [640, 720], [400, 720]]
+    stop_line: nb_stop
+calibration:
+  # SYNTHETIC. The true mapping is X = (x - 650) * 0.03 m, Y = (720 - y) * 0.06 m (lanes ~3.5 m
+  # wide, 43 m of road). The world points carry a few cm of made-up "tape measure" error so the
+  # fit and hold-out errors look like a real calibration's, not a perfect 0.
+  image_points_px: [[380, 720], [920, 720], [380, 0], [920, 0], [380, 360], [920, 360], [650, 600], [650, 120]]
+  world_points_m: [[-8.05, 0.10], [8.16, -0.05], [-8.18, 43.31], [8.04, 43.12], [-8.12, 21.66], [8.07, 21.52], [0.06, 7.15], [-0.04, 36.09]]
+  holdout_image_px: [[520, 540], [780, 240], [650, 430]]
+  holdout_world_m: [[-3.95, 10.86], [3.84, 28.71], [0.05, 17.43]]
+signal:
+  mode: inferred
+  red_intervals_s: []
+queue:
+  stop_speed_m_s: 1.0
+  stop_speed_px_s: 8
+  min_vehicles: 5
+  min_stopped_s: 10
+  flow_window_s: 20
+  sustained_after_s: 30
+counting:
+  min_track_frames: 5

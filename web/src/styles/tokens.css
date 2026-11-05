@@ -1,0 +1,211 @@
+/* Bali StreetLens design tokens: Lembar Rupabumi. Light only. Mirrors web/src/lib/palette.ts.
+
+   The app reads like an official topographic map sheet: white paper, olive ink (#606C38) for every
+   rule, box, fill and mark, near-black text, no rounded corners. Colour carries traffic state only
+   (lancar green, padat amber, macet red), and the olive ink is reserved for your selection, primary
+   actions and the card heads.
+   State is never colour alone: a printed mark (ring / half / full / dashed) and a word go with it. */
+
+:root {
+  color-scheme: light;
+
+  --paper: #ffffff;
+  --paper-2: #f3f5f6; /* hover, insets */
+  --paper-3: #e7eaec; /* pressed */
+  /* Ink (user, 2026-11-04): olive for every line, box, fill and mark that used to be black.
+     Text keeps its near-black (--text) for reading. Olive on white and white on olive: 5.7:1;
+     white on hover 7.7:1, on press 10.4:1. */
+  --ink: #606c38;
+  --ink-hover: #4d572d;
+  --ink-press: #3b4322;
+  --text: #15181b; /* 17.6:1 on paper */
+  --ink-2: #4e555b; /* 7.4:1 on paper */
+  --rule: #d5d9dc;
+  --rule-strong: var(--ink);
+  /* Card heads: the olive ink as a band with white type (user, 2026-11-04). Not a traffic colour. */
+  --brand: var(--ink);
+  --brand-hover: var(--ink-hover);
+  --on-brand: #ffffff;
+  --on-brand-2: #eef1e1; /* 4.95:1 on olive */
+
+  --lancar: #1f8a55;
+  --lancar-ink: #16683f;
+  --lancar-tint: #d6eedf;
+  --padat: #e8a317;
+  --padat-ink: #8a5a00;
+  --padat-tint: #fbebc8;
+  --macet: #d23b2e;
+  --macet-ink: #b0281d;
+  --macet-tint: #f7d5d1;
+  --unknown: #9aa3a9;
+  --sea: #a9d8f2; /* shallow sea, as palette.ts COLORS.sea */
+
+  --font: "Archivo Variable", "Archivo", system-ui, sans-serif;
+  --line: 1px;
+  --radius: 0;
+  --m: 4px; /* spacing module: every gap is a multiple of it */
+  --shadow: 0 1px 0 rgba(21, 24, 27, 0.06), 0 8px 24px -8px rgba(21, 24, 27, 0.18);
+
+  /* Team tools (web/src/tools) still use the earlier names. */
+  --kapur: var(--paper);
+  --kapur-2: var(--paper-2);
+  --abu: var(--rule);
+  --abu-ink: var(--ink-2);
+  --ijuk: var(--text);
+  --surface: var(--paper);
+  --surface-2: var(--paper-2);
+  --border: var(--rule);
+  --accent: var(--ink);
+  --radius-s: 0;
+  --radius-l: 0;
+
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--text);
+  background: var(--paper);
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--text);
+  caret-color: var(--ink);
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+* {
+  -webkit-tap-highlight-color: transparent;
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink-2) transparent;
+}
+
+:focus-visible {
+  outline: 3px solid var(--ink);
+  outline-offset: 2px;
+}
+
+a {
+  color: inherit;
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  text-wrap: balance;
+}
+
+p {
+  margin: 0;
+}
+
+.num,
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Buttons: printed boxes. Primary is the reserved black ink. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: calc(var(--m) * 2);
+  min-height: 48px;
+  padding: 0 calc(var(--m) * 4);
+  font: 700 15px/1 var(--font);
+  color: var(--text);
+  background: var(--paper);
+  border: var(--line) solid var(--ink);
+  border-radius: 0;
+  cursor: pointer;
+  transition: background-color 120ms ease-out, color 120ms ease-out;
+}
+.btn:hover {
+  background: var(--paper-2);
+}
+.btn:active {
+  background: var(--paper-3);
+}
+.btn-primary {
+  background: var(--ink);
+  color: var(--paper);
+}
+.btn-primary:hover {
+  background: var(--ink-hover);
+}
+.btn-primary:active {
+  background: var(--ink-press);
+}
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 calc(var(--m) * 3);
+  font: 700 13px/1 var(--font);
+  color: var(--text);
+  background: var(--paper);
+  border: var(--line) solid var(--ink);
+  cursor: pointer;
+}
+.chip[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* Notice strips (synthetic data, connection). Also used by the team tools. */
+.banner {
+  margin: 0;
+  padding: calc(var(--m) * 1.5) calc(var(--m) * 3);
+  font: 800 12px/1.3 var(--font);
+  font-stretch: 110%;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-align: center;
+}
+.banner-synthetic {
+  background: var(--ink);
+  color: var(--paper);
+}

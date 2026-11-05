@@ -1,0 +1,34 @@
+# Raw and normalized videos stay local (privacy and size)
+data/*
+!data/.gitkeep
+fixtures/*.mp4
+
+# Model weights
+*.pt
+*.onnx
+*.engine
+
+# API keys for the free assistant (Groq / NVIDIA): never commit
+.env
+.env.*
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Node / Vite
+node_modules/
+web/dist/
+*.tsbuildinfo
+
+# Impeccable review captures (regenerated each review)
+.impeccable/review/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/*
+!.vscode/extensions.json
+.idea/

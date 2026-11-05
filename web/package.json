@@ -1,0 +1,44 @@
+{
+  "name": "bali-streetlens-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "typecheck": "tsc -b",
+    "preview": "vite preview",
+    "test": "node --test \"src/**/*.test.ts\"",
+    "fixture": "node scripts/make_synthetic.ts",
+    "fixture:video": "node scripts/make_sync_video.ts",
+    "tiles": "node scripts/fetch_tiles.ts",
+    "corridor": "node scripts/build_corridor.ts",
+    "places": "node scripts/build_places.ts",
+    "outline": "node scripts/build_bali_outline.ts",
+    "roads": "node scripts/build_roads.ts",
+    "bathymetry": "node scripts/build_bathymetry.ts"
+  },
+  "dependencies": {
+    "@fontsource-variable/archivo": "^5.3.0",
+    "@fontsource-variable/hanken-grotesk": "^5.3.0",
+    "@phosphor-icons/react": "^2.1.10",
+    "maplibre-gl": "^6.16.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "three": "0.186.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@types/three": "0.186.0",
+    "@vitejs/plugin-react": "^6.1.2",
+    "pmtiles": "^4.5.0",
+    "polygon-clipping": "^0.15.7",
+    "typescript": "~6.0.3",
+    "vite": "^8.3.5"
+  }
+}
