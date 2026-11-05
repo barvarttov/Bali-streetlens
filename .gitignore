@@ -1,6 +1,9 @@
 # Raw and normalized videos stay local (privacy and size)
 data/*
 !data/.gitkeep
+# Map tiles for Bali (npm run tiles, OpenStreetMap via Protomaps): committed so the hosted map is served
+# from the CDN without fetching anything at run time.
+!data/tiles/
 fixtures/*.mp4
 
 # Model weights

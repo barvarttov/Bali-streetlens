@@ -1,8 +1,17 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "fastapi",
-  "buildCommand": "cd web && npm ci && VITE_LIVE_POLL=1 npm run build && cd .. && rm -rf public && cp -r web/dist public",
+  "buildCommand": "cd web && npm ci && VITE_LIVE_POLL=1 npm run build && cd .. && rm -rf public && cp -r web/dist public && cp -r data/tiles public/tiles",
   "regions": ["sin1"],
+  "headers": [
+    {
+      "source": "/tiles/(.*)",
+      "headers": [
+        { "key": "Content-Type", "value": "application/vnd.mapbox-vector-tile" },
+        { "key": "Cache-Control", "value": "public, max-age=86400, s-maxage=604800" }
+      ]
+    }
+  ],
   "functions": {
     "backend/main.py": {
       "excludeFiles": "{web/node_modules/**,web/src/**,web/scripts/**,public/**,data/**,results/**,docs/**,eval/**,tools/**,vision/**,**/test_*.py,**/*.mp4}"

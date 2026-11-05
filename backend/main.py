@@ -317,6 +317,10 @@ def get_tile(z: int, x: int, y: int) -> Response:
         return FileResponse(path, media_type="application/vnd.mapbox-vector-tile", headers=headers)
     if not 0 <= z <= MAX_TILE_ZOOM:
         return Response(status_code=204)
+    if os.environ.get("VERCEL"):
+        # On Vercel the island's tiles (data/tiles) are static files on the CDN, so a request that reaches
+        # here is for a tile the build doesn't have (open sea). Fetching it remotely would only be slow.
+        return Response(status_code=204, headers=headers)
     data = _remote_tiles.tile(z, x, y)
     if data is None:  # offline: don't let the browser cache the blank
         return Response(status_code=204, headers={"Cache-Control": "no-store"})
