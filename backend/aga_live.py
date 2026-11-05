@@ -35,7 +35,8 @@ STALE_S = 15.0  # no new frame for this long: the camera counts as offline
 PROCESS_EVERY_S = 0.5
 CONF = 0.3
 PROBE_TTL_S = 600.0
-PROBE_TIMEOUT_S = 6.0
+PROBE_TIMEOUT_S = 5.0
+PROBE_WORKERS = 32
 VEHICLE_CLASSES = ("motorcycle", "car", "bus", "truck")
 
 FrameSource = Callable[[str], Iterator[Any]]  # camera id -> iterator of BGR frames (blocks while waiting)
@@ -186,28 +187,47 @@ class LiveCameras:
         self._lock = threading.Lock()
         self._watchers: dict[str, _Watcher] = {}
         self._probed: tuple[float, list[str]] = (0.0, [])
+        self._refreshing = False
 
     @classmethod
     def from_environment(cls, cameras: list[dict[str, Any]]) -> "LiveCameras":
         detect, reason = load_aga_detector()
-        return cls(cameras, detect, reason)
+        live = cls(cameras, detect, reason)
+        if detect is not None:
+            live.refresh_async()  # warm the list so the first visitor does not wait for 90 playlist probes
+        return live
 
     def status(self) -> dict[str, Any]:
         return {"model_ready": self._detect is not None, "model": MODEL_NAME, "reason": self._reason}
 
-    def live_ids(self, now: Optional[float] = None) -> list[str]:
-        """Camera ids whose stream answers right now (cached for PROBE_TTL_S)."""
-        now = time.time() if now is None else now
-        with self._lock:
-            stamp, ids = self._probed
-        if ids and now - stamp < PROBE_TTL_S:
-            return ids
-        with ThreadPoolExecutor(max_workers=6) as pool:
+    def _refresh(self, now: Optional[float] = None) -> list[str]:
+        with ThreadPoolExecutor(max_workers=PROBE_WORKERS) as pool:
             alive = list(pool.map(self._probe, self._cameras))
         ids = [cid for cid, ok in zip(self._cameras, alive) if ok]
         with self._lock:
-            self._probed = (now, ids)
+            self._probed = (time.time() if now is None else now, ids)
+            self._refreshing = False
         return ids
+
+    def refresh_async(self) -> None:
+        """Re-probe the cameras in a background thread (at most one at a time)."""
+        with self._lock:
+            if self._refreshing:
+                return
+            self._refreshing = True
+        threading.Thread(target=self._refresh, daemon=True, name="aga-live-probe").start()
+
+    def live_ids(self, now: Optional[float] = None) -> list[str]:
+        """Camera ids whose stream answers. Cached for PROBE_TTL_S; an old list is served while a fresh one is probed."""
+        now = time.time() if now is None else now
+        with self._lock:
+            stamp, ids = self._probed
+        if stamp and now - stamp < PROBE_TTL_S:
+            return ids
+        if stamp:
+            self.refresh_async()
+            return ids
+        return self._refresh(now)
 
     def cameras(self) -> list[dict[str, Any]]:
         if self._detect is None:  # no AGA here (e.g. the hosted build): listing cameras would only slow the answer

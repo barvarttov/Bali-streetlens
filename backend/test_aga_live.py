@@ -57,6 +57,16 @@ class LiveCamerasTest(unittest.TestCase):
         cams = make(probe=lambda c: c in live_one)
         self.assertEqual([c["id"] for c in cams.cameras()], [CAM])
 
+    def test_old_list_is_served_while_a_new_one_is_probed(self):
+        calls = []
+        cams = make(probe=lambda c: calls.append(c) or True)
+        first = cams.live_ids(now=1000.0)
+        n = len(calls)
+        stale = cams.live_ids(now=1000.0 + aga_live.PROBE_TTL_S + 1)  # expired: must answer at once with the old list
+        self.assertEqual(stale, first)
+        wait_for(lambda: len(calls) > n)
+        self.assertGreater(len(calls), n)
+
     def test_unknown_camera_is_refused_and_never_probed_as_url(self):
         cams = make()
         with self.assertRaises(KeyError):

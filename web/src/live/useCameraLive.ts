@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { liveApi } from "./api.ts";
 
 // Real AGA counts for one provincial camera, for the public map's camera card. Opening the card asks the
 // backend to analyse that camera; closing it stops the polling (the backend stops the camera ~45 s later).
@@ -15,8 +16,8 @@ export type CameraLiveStatus =
   | { kind: "unavailable"; reason: string } // no AGA on this server, too many cameras, unknown camera
   | { kind: "ok"; data: CameraLive };
 
-async function call<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
+async function call<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(liveApi(path), init);
   if (!res.ok) {
     let detail = "";
     try {
