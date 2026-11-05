@@ -4,8 +4,10 @@ import { matchScore, normalize } from "../public/places.ts";
 import { normalizeConfig } from "../lib/config.ts";
 import { calibrate, imageToWorld } from "../lib/homography.ts";
 import type { Calibration } from "../lib/homography.ts";
-import { LiveScene } from "./liveScene.ts";
-import type { LiveObject } from "./liveScene.ts";
+import { fromLocalMeters } from "../lib/geo.ts";
+import type { LngLat } from "../lib/geo.ts";
+import { LiveMap } from "./LiveMap.ts";
+import type { MapVehicle } from "./LiveMap.ts";
 import "./live.css";
 
 // "CCTV langsung": search a location that has a live camera, then AGA (our own detector) reads that camera's
@@ -30,7 +32,7 @@ interface Observation {
   model: string;
   frame_size?: [number, number];
   updated_at?: string;
-  objects: { track_id: number; cls: LiveObject["cls"]; conf: number; ground_px: [number, number] }[];
+  objects: { track_id: number; cls: MapVehicle["cls"]; conf: number; ground_px: [number, number] }[];
   counts: Record<string, number>;
   problem: string | null;
 }
@@ -147,23 +149,52 @@ function CameraSearch({ list, error, selectedId }: { list: CameraList | null; er
   );
 }
 
+// Where the vehicles come from: a calibrated camera with a known map origin gives measured positions; anything
+// else is a rough guess (the camera is assumed to look north, the road 30 m wide and 40 m deep) and is drawn faded.
+interface Placement {
+  cal: Calibration;
+  origin: LngLat;
+}
+const SKETCH_WIDTH_M = 30;
+const SKETCH_DEPTH_M = 40;
+const SKETCH_NEAR_M = 6;
+
+function place(o: Observation, camera: LiveCamera, placement: Placement | null): MapVehicle[] {
+  const size = o.frame_size;
+  if (!size) return [];
+  return o.objects.map((v) => {
+    const w = placement ? imageToWorld(placement.cal, v.ground_px) : null;
+    const lnglat: LngLat =
+      placement && w
+        ? fromLocalMeters(placement.origin, w)
+        : fromLocalMeters(camera.lnglat, [
+            (v.ground_px[0] / size[0] - 0.5) * SKETCH_WIDTH_M,
+            SKETCH_NEAR_M + (1 - v.ground_px[1] / size[1]) * SKETCH_DEPTH_M,
+          ]);
+    return { id: v.track_id, cls: v.cls, lnglat };
+  });
+}
+
 function Viewer({ camera, model }: { camera: LiveCamera; model: string }) {
   const host = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<LiveScene | null>(null);
+  const mapRef = useRef<LiveMap | null>(null);
   const [obs, setObs] = useState<Observation | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
-  const [cal, setCal] = useState<Calibration | null>(null);
-  const calRef = useRef<Calibration | null>(null);
+  const [mapError, setMapError] = useState<string | null>(null);
+  const [placement, setPlacement] = useState<Placement | null>(null);
+  const placementRef = useRef<Placement | null>(null);
 
-  // The camera's calibration, if the team made one. Without it the scene is a sketch.
+  // The camera's calibration, if the team made one. Without it (or without its map origin) positions are a guess.
   useEffect(() => {
     let cancelled = false;
     getJson<unknown>(`/api/cameras/${encodeURIComponent(camera.id)}/config`)
       .then((raw) => {
-        const r = calibrate(normalizeConfig(raw).calibration);
-        if (!cancelled && r.ok) {
-          calRef.current = r.calibration;
-          setCal(r.calibration);
+        const cfg = normalizeConfig(raw);
+        const r = calibrate(cfg.calibration);
+        if (!cancelled && r.ok && cfg.world_origin_lnglat) {
+          const next = { cal: r.calibration, origin: cfg.world_origin_lnglat as LngLat };
+          placementRef.current = next;
+          setPlacement(next);
         }
       })
       .catch(() => undefined); // 404 = not calibrated yet
@@ -174,19 +205,17 @@ function Viewer({ camera, model }: { camera: LiveCamera; model: string }) {
 
   useEffect(() => {
     if (!host.current) return;
-    const scene = new LiveScene(host.current);
-    scene.setVehicleScale(calRef.current ? 1 : 3);
-    sceneRef.current = scene;
+    const map = new LiveMap(host.current, camera.lnglat, setMapError);
+    mapRef.current = map;
     return () => {
-      scene.dispose();
-      sceneRef.current = null;
+      map.dispose();
+      mapRef.current = null;
     };
-  }, []);
+  }, [camera.lnglat]);
 
-  // Without a calibration the scene is a sketch: draw boxes 3x bigger so they are visible.
   useEffect(() => {
-    sceneRef.current?.setVehicleScale(cal ? 1 : 3);
-  }, [cal]);
+    mapRef.current?.setApproximate(!placement);
+  }, [placement]);
 
   // Keep the server analysing this camera while the page is open, and poll the result.
   useEffect(() => {
@@ -202,17 +231,7 @@ function Viewer({ camera, model }: { camera: LiveCamera; model: string }) {
         .then((o) => {
           if (closed) return;
           setObs(o);
-          const size = o.frame_size;
-          const c = calRef.current;
-          const placed: LiveObject[] = o.objects.map((v) => {
-            let xz: [number, number];
-            const w = c && size ? imageToWorld(c, v.ground_px) : null;
-            if (w) xz = [w[0], -w[1]];
-            else if (size) xz = [(v.ground_px[0] / size[0] - 0.5) * 30, -(1 - v.ground_px[1] / size[1]) * 40];
-            else xz = [0, 0];
-            return { id: v.track_id, cls: v.cls, x: xz[0], z: xz[1] };
-          });
-          sceneRef.current?.setVehicles(placed);
+          mapRef.current?.setVehicles(place(o, camera, placementRef.current));
         })
         .catch(() => undefined);
     }, POLL_MS);
@@ -221,7 +240,7 @@ function Viewer({ camera, model }: { camera: LiveCamera; model: string }) {
       window.clearInterval(watchTimer);
       window.clearInterval(poll);
     };
-  }, [camera.id]);
+  }, [camera]);
 
   const state = problem ? "error" : (obs?.camera_state ?? "connecting");
   const stateText =
@@ -242,16 +261,17 @@ function Viewer({ camera, model }: { camera: LiveCamera; model: string }) {
           </div>
         ))}
       </dl>
+      {mapError && <p className="live-note is-warn" role="alert">Peta tidak bisa dimuat: {mapError}</p>}
       {problem && <p className="live-note is-warn" role="alert">{problem}</p>}
       {!problem && obs?.problem && <p className="live-note is-warn" role="status">Kamera: {obs.problem}</p>}
-      <p className={`live-note${cal ? "" : " is-warn"}`}>
-        {cal
-          ? "Posisi dihitung dari kalibrasi kamera ini."
-          : "Kamera ini belum dikalibrasi, jadi gambar ini hanya sketsa: posisi dan jarak bukan ukuran nyata, dan kotak digambar 3x lebih besar agar terlihat. Belum ada peta jalan atau gedung."}
+      <p className={`live-note${placement ? "" : " is-warn"}`}>
+        {placement
+          ? "Posisi kendaraan dihitung dari kalibrasi kamera ini."
+          : "Kamera ini belum dikalibrasi. Kendaraan digambar samar dan diperbesar di sekitar titik kamera, dengan perkiraan kasar (kamera dianggap menghadap utara): jalur dan jarak belum tepat."}
       </p>
       <p className="live-note">
         Model: {obs?.model ?? model}, dilatih dari nol. Skor uji 0,47 mAP50 pada 84 bingkai CCTV; paling lemah saat hujan dan malam,
-        jadi kendaraan bisa terlewat.
+        jadi kendaraan bisa terlewat. Jalan dan gedung dari OpenStreetMap.
       </p>
     </section>
   );

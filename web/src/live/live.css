@@ -142,3 +142,11 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+.live-cam-pin {
+  width: 14px;
+  height: 14px;
+  border: 3px solid var(--on-brand);
+  background: var(--brand);
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px var(--ink);
+}
