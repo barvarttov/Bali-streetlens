@@ -62,6 +62,12 @@ class LiveCamerasTest(unittest.TestCase):
         with self.assertRaises(KeyError):
             cams.watch("../../etc/passwd")
 
+    def test_no_model_lists_no_cameras_and_never_probes(self):
+        def boom(_c):
+            raise AssertionError("must not probe without a model")
+
+        self.assertEqual(make(detect=None, reason="no torch", probe=boom).cameras(), [])
+
     def test_model_missing_is_a_clear_error(self):
         cams = make(detect=None, reason="no torch")
         self.assertFalse(cams.status()["model_ready"])

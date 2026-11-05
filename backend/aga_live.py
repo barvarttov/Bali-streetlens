@@ -210,6 +210,8 @@ class LiveCameras:
         return ids
 
     def cameras(self) -> list[dict[str, Any]]:
+        if self._detect is None:  # no AGA here (e.g. the hosted build): listing cameras would only slow the answer
+            return []
         live = set(self.live_ids())
         return [{"id": c["id"], "name": c["name"], "lnglat": c["lnglat"]} for c in self._cameras.values() if c["id"] in live]
 

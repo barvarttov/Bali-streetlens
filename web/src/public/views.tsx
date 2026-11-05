@@ -3,6 +3,8 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { useLang } from "../i18n.tsx";
 import { compassOrder } from "../lib/direction.ts";
+import { useCameraLive } from "../live/useCameraLive.ts";
+import { navigate } from "../router.ts";
 import { LABEL_RANK } from "../lib/liveSchema.ts";
 import type { Camera, Corridor, Junction, JunctionState, LngLat, TrafficLabel } from "../lib/liveSchema.ts";
 import { effectiveCameraState, formatAge, formatDuration, formatNumber, freshnessText } from "./format.ts";
@@ -465,14 +467,53 @@ function WhyRules({ why, label }: { why: NonNullable<JunctionState["why"]>; labe
 // ---------------------------------------------------------------- un-analysed camera
 
 export function CameraInfo({ camera, onBack }: { camera: Camera; onBack: () => void }) {
-  const { t } = useLang();
+  const { t, lang } = useLang();
+  const live = useCameraLive(camera.id);
+  const id = lang === "id";
+  const counting = live.kind === "ok" && live.data.camera_state === "live";
+  const names: [string, string][] = [
+    ["motorcycle", id ? "Motor" : "Motorbikes"],
+    ["car", id ? "Mobil" : "Cars"],
+    ["bus", "Bus"],
+    ["truck", id ? "Truk" : "Trucks"],
+  ];
   return (
     <article className="camera-info" aria-labelledby="card-title">
       <CardHead title={camera.name} sub={t("camSource")} onBack={onBack} />
       <section className="card-section">
-        <StateWord label="unknown" size="md" />
-        <p className="state-summary">{t("camTitle")}</p>
-        <p className="why-sentence">{t("camBody")}</p>
+        {counting ? (
+          <>
+            <p className="state-summary">{id ? "Hitungan langsung dari AGA" : "Live count from AGA"}</p>
+            <dl className="camera-live-counts">
+              {names.map(([key, label]) => (
+                <div key={key}>
+                  <dt>{label}</dt>
+                  <dd>{live.data.counts[key] ?? 0}</dd>
+                </div>
+              ))}
+            </dl>
+            <p className="why-sentence">
+              {id
+                ? "Ini kendaraan yang terlihat di gambar sekarang, bukan arus per menit, dan belum ada label lancar/padat/macet karena kamera ini belum dikonfigurasi. AGA bisa melewatkan kendaraan, terutama saat hujan dan malam."
+                : "These are the vehicles in the picture right now, not a flow per minute, and there is no lancar/padat/macet label because this camera is not configured yet. AGA can miss vehicles, especially in rain and at night."}
+            </p>
+            <button type="button" className="search-route" onClick={() => navigate(`/langsung/${encodeURIComponent(camera.id)}`)}>
+              <span className="search-route-text">{id ? "Lihat dalam 3D" : "View in 3D"}</span>
+            </button>
+          </>
+        ) : (
+          <>
+            <StateWord label="unknown" size="md" />
+            <p className="state-summary">{t("camTitle")}</p>
+            <p className="why-sentence">{t("camBody")}</p>
+            {live.kind === "ok" && live.data.camera_state === "connecting" && (
+              <p className="why-sentence">{id ? "Menghubungkan ke kamera…" : "Connecting to the camera…"}</p>
+            )}
+            {live.kind === "ok" && live.data.camera_state === "offline" && (
+              <p className="why-sentence">{id ? "Kamera ini sedang mati atau tidak mengirim gambar." : "This camera is off or sends no picture."}</p>
+            )}
+          </>
+        )}
       </section>
     </article>
   );
