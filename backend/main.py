@@ -21,6 +21,7 @@ from typing import Any, Literal
 
 import yaml
 from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
@@ -43,6 +44,32 @@ ROADS_FILE = CONFIG_DIR / "roads.json.gz"
 WEB_DIST = ROOT / "web" / "dist"
 
 app = FastAPI(title="Bali StreetLens")
+
+
+@app.middleware("http")
+async def tunnel_guard(request: Request, call_next):
+    """Through a public tunnel only the live-camera routes answer: not the assistant, clips or anything else."""
+    host = request.headers.get("host", "")
+    if host.endswith(".trycloudflare.com") or "cf-connecting-ip" in request.headers:
+        path = request.url.path
+        ok = path.startswith("/api/live/") or (path.startswith("/api/cameras/") and path.endswith("/config"))
+        if not ok and request.method != "OPTIONS":
+            return Response(status_code=404)
+    return await call_next(request)
+
+
+# The hosted site (Vercel) has no AGA; it can call this backend through a tunnel to the vision machine.
+# Only the project's own origins may do so, read-only plus the "watch" POST, and no cookies are involved.
+app.add_middleware(
+    CORSMiddleware,
+    allow_origin_regex=os.environ.get(
+        "LIVE_CORS_ORIGIN_REGEX",
+        r"^https://bali-streetlens[a-z0-9-]*\.vercel\.app$|^http://localhost:\d+$|^http://127\.0\.0\.1:\d+$",
+    ),
+    allow_methods=["GET", "POST"],
+    allow_headers=[],
+    allow_credentials=False,
+)
 
 
 @dataclass

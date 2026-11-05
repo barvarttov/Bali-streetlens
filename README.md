@@ -84,6 +84,21 @@ npm run demo     # builds web/dist, then serves everything at http://127.0.0.1:8
 Team-tool keys: Space = play/pause, ←/→ = one frame, Shift+←/→ = one second. Count logger: M/C/B/T log a
 motorcycle/car/bus/truck crossing (Shift = outbound), 1–9 pick the count line, Z undoes the last one.
 
+## Live AGA on the hosted site (tunnel)
+
+The hosted site has no torch, so AGA runs on the vision machine and the site reaches it through a Cloudflare tunnel.
+
+1. Install `cloudflared` (https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/).
+2. `powershell -ExecutionPolicy Bypass -File toolsun-live.ps1` starts the backend and the tunnel and prints a link like
+   `https://bali-streetlens.vercel.app/langsung?api=https://<words>.trycloudflare.com`. Open it once per browser; the address is remembered.
+3. `powershell -ExecutionPolicy Bypass -File tools\install-autostart.ps1` makes this happen at every login (`-Remove` undoes it).
+   The latest link is in `%LOCALAPPDATA%\streetlens-live\share-link.txt`. A quick tunnel gets a new address on every start.
+
+Safety: through the tunnel only `/api/live/*` and `/api/cameras/<id>/config` answer (`backend/main.py`, `tunnel_guard`); other
+routes, such as the assistant, return 404. Only this project's own sites may call it (CORS), the page accepts only
+`*.trycloudflare.com` or localhost as `?api=`, at most 3 cameras are analysed at once, and no frame leaves the machine.
+The site works only while this PC is on and online.
+
 ## Checks
 
 - `cd web; npm test`: schema, fixture and Balinese-direction tests (Node runs the TypeScript directly).

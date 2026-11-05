@@ -6,6 +6,7 @@ import { calibrate, imageToWorld } from "../lib/homography.ts";
 import type { Calibration } from "../lib/homography.ts";
 import { fromLocalMeters } from "../lib/geo.ts";
 import type { LngLat } from "../lib/geo.ts";
+import { liveApi } from "./api.ts";
 import { LiveMap } from "./LiveMap.ts";
 import type { MapVehicle } from "./LiveMap.ts";
 import "./live.css";
@@ -41,8 +42,8 @@ const CLASS_LABEL: Record<string, string> = { motorcycle: "Motor", car: "Mobil",
 const WATCH_EVERY_MS = 20_000;
 const POLL_MS = 700;
 
-async function getJson<T>(url: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(url, init);
+async function getJson<T>(path: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(liveApi(path), init);
   if (!res.ok) {
     let detail = "";
     try {
