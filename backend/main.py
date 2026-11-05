@@ -340,7 +340,7 @@ def get_tile(z: int, x: int, y: int) -> Response:
     return Response(data, media_type="application/vnd.mapbox-vector-tile", headers=headers)
 
 
-# On Vercel the island's tiles (data/tiles) are copied into the static output, and Vercel sends a path to a
+# On Vercel the island's tiles (data/tiles) are copied into web/dist/tiles, and Vercel sends a path to a
 # Python route before it looks at static files. So there the route must not exist: the CDN serves the
 # tiles, and a tile the build lacks (open sea) falls through to SpaStaticFiles below, which answers 204.
 if not os.environ.get("VERCEL"):
