@@ -15,5 +15,6 @@ docs
 web/dist
 *.pt
 *.onnx
+!models/AGA_Model_cctv6.onnx
 *.engine
 *.mp4

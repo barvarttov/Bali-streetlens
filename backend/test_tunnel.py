@@ -1,7 +1,10 @@
 """The public tunnel exposes only the live-camera routes, and only the project's own sites may call them.
 Run from the repo root: .venv/Scripts/python -m unittest backend.test_tunnel"""
 
+import os
 import unittest
+
+os.environ.setdefault("AGA_ONNX", "0")  # these tests check routing only: do not load AGA or probe 91 cameras
 
 from fastapi.testclient import TestClient
 

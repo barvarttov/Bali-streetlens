@@ -18,6 +18,8 @@ RUN pip install --no-cache-dir -r backend/requirements.txt
 COPY backend/ backend/
 COPY config/ config/
 COPY fixtures/ fixtures/
+# AGA without torch (ONNX), see README "Live AGA on the hosted site"
+COPY models/AGA_Model_cctv6.onnx models/AGA_Model_cctv6.onnx
 COPY --from=web /app/web/dist web/dist
 # Map tiles are fetched on first use and cached here (lost on restart, which is fine).
 RUN mkdir -p data results

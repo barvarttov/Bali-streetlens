@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { liveApi } from "./api.ts";
+import { liveApi, pageVisible, pollDelay } from "./api.ts";
 
 // Real AGA counts for one provincial camera, for the public map's camera card. Opening the card asks the
 // backend to analyse that camera; closing it stops the polling (the backend stops the camera ~45 s later).
@@ -9,6 +9,7 @@ export interface CameraLive {
   updated_at?: string;
   counts: Record<string, number>;
   problem: string | null;
+  refresh_s?: number; // set when the server analyses on demand (no torch): seconds between fresh frames
 }
 
 export type CameraLiveStatus =
@@ -41,16 +42,34 @@ export function useCameraLive(cameraId: string): CameraLiveStatus {
         if (!closed) setStatus({ kind: "unavailable", reason: e.message });
       });
     void watch();
-    const keep = window.setInterval(() => void watch(), 20_000);
-    const poll = window.setInterval(() => {
+    const keep = window.setInterval(() => {
+      if (pageVisible()) void watch();
+    }, 20_000);
+    // One request at a time (on the hosted site a poll may analyse a frame for a few seconds), never while hidden.
+    let every = 1500;
+    let timer = 0;
+    const tick = () => {
+      if (closed) return;
+      if (!pageVisible()) {
+        timer = window.setTimeout(tick, every);
+        return;
+      }
       call<CameraLive>(`/api/live/camera/${encodeURIComponent(cameraId)}`)
-        .then((data) => !closed && setStatus({ kind: "ok", data }))
-        .catch(() => undefined); // the watch call reports real problems; a 404 just means "not started yet"
-    }, 1500);
+        .then((data) => {
+          if (closed) return;
+          every = pollDelay(1500, data.refresh_s);
+          setStatus({ kind: "ok", data });
+        })
+        .catch(() => undefined) // the watch call reports real problems; a 404 just means "not started yet"
+        .finally(() => {
+          if (!closed) timer = window.setTimeout(tick, every);
+        });
+    };
+    timer = window.setTimeout(tick, 300);
     return () => {
       closed = true;
       window.clearInterval(keep);
-      window.clearInterval(poll);
+      window.clearTimeout(timer);
     };
   }, [cameraId]);
 

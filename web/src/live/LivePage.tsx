@@ -6,7 +6,7 @@ import { calibrate, imageToWorld } from "../lib/homography.ts";
 import type { Calibration } from "../lib/homography.ts";
 import { fromLocalMeters } from "../lib/geo.ts";
 import type { LngLat } from "../lib/geo.ts";
-import { liveApi } from "./api.ts";
+import { liveApi, pageVisible, pollDelay } from "./api.ts";
 import { LiveMap } from "./LiveMap.ts";
 import type { MapVehicle } from "./LiveMap.ts";
 import "./live.css";
@@ -36,6 +36,7 @@ interface Observation {
   objects: { track_id: number; cls: MapVehicle["cls"]; conf: number; ground_px: [number, number] }[];
   counts: Record<string, number>;
   problem: string | null;
+  refresh_s?: number; // server without torch: one fresh frame every refresh_s seconds
 }
 
 const CLASS_LABEL: Record<string, string> = { motorcycle: "Motor", car: "Mobil", bus: "Bus", truck: "Truk" };
@@ -226,20 +227,35 @@ function Viewer({ camera, model }: { camera: LiveCamera; model: string }) {
         .then(() => setProblem(null))
         .catch((e: Error) => !closed && setProblem(e.message));
     void watch();
-    const watchTimer = window.setInterval(() => void watch(), WATCH_EVERY_MS);
-    const poll = window.setInterval(() => {
+    const watchTimer = window.setInterval(() => {
+      if (pageVisible()) void watch();
+    }, WATCH_EVERY_MS);
+    // One request at a time and none while the tab is hidden (see pollDelay for the hosted site's pace).
+    let every = POLL_MS;
+    let timer = 0;
+    const tick = () => {
+      if (closed) return;
+      if (!pageVisible()) {
+        timer = window.setTimeout(tick, every);
+        return;
+      }
       getJson<Observation>(`/api/live/camera/${encodeURIComponent(camera.id)}`)
         .then((o) => {
           if (closed) return;
+          every = pollDelay(POLL_MS, o.refresh_s);
           setObs(o);
           mapRef.current?.setVehicles(place(o, camera, placementRef.current));
         })
-        .catch(() => undefined);
-    }, POLL_MS);
+        .catch(() => undefined)
+        .finally(() => {
+          if (!closed) timer = window.setTimeout(tick, every);
+        });
+    };
+    timer = window.setTimeout(tick, 300);
     return () => {
       closed = true;
       window.clearInterval(watchTimer);
-      window.clearInterval(poll);
+      window.clearTimeout(timer);
     };
   }, [camera]);
 
@@ -265,6 +281,12 @@ function Viewer({ camera, model }: { camera: LiveCamera; model: string }) {
       {mapError && <p className="live-note is-warn" role="alert">Peta tidak bisa dimuat: {mapError}</p>}
       {problem && <p className="live-note is-warn" role="alert">{problem}</p>}
       {!problem && obs?.problem && <p className="live-note is-warn" role="status">Kamera: {obs.problem}</p>}
+      {obs?.refresh_s && (
+        <p className="live-note">
+          Di situs ini AGA berjalan di server tanpa GPU, jadi gambar kendaraan diperbarui sekitar setiap {obs.refresh_s} detik, bukan
+          terus-menerus.
+        </p>
+      )}
       <p className={`live-note${placement ? "" : " is-warn"}`}>
         {placement
           ? "Posisi kendaraan dihitung dari kalibrasi kamera ini."

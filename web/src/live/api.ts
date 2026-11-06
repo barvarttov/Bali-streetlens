@@ -34,3 +34,11 @@ export function liveApiBase(): string {
 }
 
 export const liveApi = (path: string): string => `${liveApiBase()}${path}`;
+
+// A hidden tab asks nothing: on the hosted site every AGA frame costs CPU from the free plan's monthly allowance.
+export const pageVisible = (): boolean => typeof document === "undefined" || document.visibilityState !== "hidden";
+
+/** How long to wait between polls. Without torch the server refreshes a camera only every `refresh_s` seconds,
+ *  so asking more often only returns the same answer. */
+export const pollDelay = (fastMs: number, refreshS?: number): number =>
+  refreshS ? Math.max(fastMs, (refreshS * 1000) / 2) : fastMs;

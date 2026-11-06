@@ -128,5 +128,89 @@ class LiveCamerasTest(unittest.TestCase):
             cams._watchers[CAM].stop.set()
 
 
+class OnDemandTest(unittest.TestCase):
+    """Without torch (the hosted site): one fresh frame per refresh, no threads, and a CPU budget."""
+
+    def make(self, **kw):
+        self.grabs = []
+
+        def grab(cid):
+            self.grabs.append(cid)
+            return np.zeros((1080, 1920, 3), np.uint8)
+
+        return make(grab=grab, **kw)
+
+    def test_watch_needs_no_thread_and_poll_analyses_once_per_refresh(self):
+        cams = self.make()
+        self.assertEqual(cams.watch(CAM), "running")
+        self.assertEqual(cams._watchers, {})
+        obs = cams.observation(CAM)
+        self.assertEqual(obs["camera_state"], "live")
+        self.assertEqual(obs["frame_size"], [1920, 1080])
+        self.assertEqual({o["cls"] for o in obs["objects"]}, {"motorcycle", "car"})  # never the person
+        self.assertEqual(obs["refresh_s"], aga_live.REFRESH_S)
+        self.assertNotIn("t", obs)
+        cams.observation(CAM)
+        self.assertEqual(len(self.grabs), 1)  # within REFRESH_S the cached result is served
+
+    def test_any_known_camera_can_be_polled_without_watch(self):
+        cams = self.make()
+        self.assertIsNotNone(cams.observation(CAM))  # the poll may reach another server instance than the watch
+        self.assertIsNone(cams.observation("../../etc/passwd"))
+        self.assertEqual(self.grabs, [CAM])
+
+    def test_same_vehicle_keeps_its_id(self):
+        cams = self.make()
+        first = cams.observation(CAM)
+        cams._results[CAM]["t"] -= aga_live.REFRESH_S + 1
+        second = cams.observation(CAM)
+        self.assertEqual(len(self.grabs), 2)
+        ids = lambda o: {x["cls"]: x["track_id"] for x in o["objects"]}  # noqa: E731
+        self.assertEqual(ids(first), ids(second))
+
+    def test_budget_stops_analysis_but_keeps_answering(self):
+        cams = self.make()
+        cams._spent = [time.time()] * aga_live.MAX_PER_HOUR
+        obs = cams.observation(CAM)
+        self.assertEqual(self.grabs, [])
+        self.assertEqual(obs["camera_state"], "offline")
+        self.assertIn("batas analisis", obs["problem"])
+
+    def test_a_broken_stream_is_reported_not_raised(self):
+        def grab(_cid):
+            raise TimeoutError("stream timed out")
+
+        obs = make(grab=grab).observation(CAM)
+        self.assertEqual(obs["camera_state"], "offline")
+        self.assertEqual(obs["objects"], [])
+        self.assertIn("TimeoutError", obs["problem"])
+
+    def test_match_ids_by_overlap_and_class(self):
+        prev = [{"track_id": 7, "cls": "car", "bbox_px": [0, 0, 10, 10]}]
+        dets = [{"cls": "car", "bbox_px": [1, 1, 11, 11]}, {"cls": "motorcycle", "bbox_px": [0, 0, 10, 10]}]
+        ids, nxt = aga_live._match_ids(prev, dets, 20)
+        self.assertEqual(ids, [7, 20])
+        self.assertEqual(nxt, 21)
+
+
+class OnnxDecodeTest(unittest.TestCase):
+    def test_decode_matches_the_torch_decoder_maths(self):
+        from backend.aga_onnx import decode
+
+        heat = np.zeros((4, 8, 8), np.float32)
+        heat[1, 2, 3] = 0.9  # a car centred at cell (x=3, y=2)
+        heat[0, 5, 5] = 0.1  # below the threshold
+        wh = np.zeros((2, 8, 8), np.float32)
+        wh[:, 2, 3] = np.log(2.0)  # 2 x 2 cells
+        off = np.zeros((2, 8, 8), np.float32)
+        off[:, 2, 3] = 0.5
+        out = decode(heat, wh, off, stride=4, conf=0.3)
+        self.assertEqual(len(out), 1)
+        box, score, cls = out[0]
+        self.assertEqual(cls, 1)
+        self.assertAlmostEqual(score, 0.9, places=5)
+        np.testing.assert_allclose(box, [10.0, 6.0, 18.0, 14.0], atol=1e-5)  # centre (3.5, 2.5) cells * 4
+
+
 if __name__ == "__main__":
     unittest.main()
