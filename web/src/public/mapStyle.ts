@@ -66,6 +66,16 @@ const DEPTH_FILL = [
 ] as unknown as ExpressionSpecification;
 const kind = (...kinds: string[]) => ["in", ["get", "kind"], ["literal", kinds]] as ExpressionSpecification;
 
+// The hosted (Vercel) site does not serve data/tiles: every /tiles request there answers 204 and the map
+// stays blank. The same files are committed to GitHub, so jsDelivr (a free CDN with CORS) serves them,
+// pinned to the commit that added them so each tile is immutable and cached for good.
+const TILE_CDN = "https://cdn.jsdelivr.net/gh/barvarttov/Bali-streetlens@1ce19a4/data/tiles";
+
+/** Where the vector tiles come from: our own server locally, the CDN on a *.vercel.app deployment. */
+export function tilesBase(origin: string): string {
+  return new URL(origin).hostname.endsWith(".vercel.app") ? TILE_CDN : `${origin}/tiles`;
+}
+
 export function mapStyle(origin: string): StyleSpecification {
   const abs = (url: string) => new URL(url, origin).href;
   const face = [
@@ -78,7 +88,7 @@ export function mapStyle(origin: string): StyleSpecification {
     glyphs: `${origin}/glyphs/{fontstack}/{range}.pbf`,
     "font-faces": { [MAP_FONT.regular]: face, [MAP_FONT.strong]: face },
     sources: {
-      osm: { type: "vector", tiles: [`${origin}/tiles/{z}/{x}/{y}.mvt`], minzoom: 0, maxzoom: 15 },
+      osm: { type: "vector", tiles: [`${tilesBase(origin)}/{z}/{x}/{y}.mvt`], minzoom: 0, maxzoom: 15 },
       "outside-bali": { type: "geojson", data: OUTSIDE_BALI },
       // Sea depth around Bali (npm run bathymetry): o=0 whole, o=1 only outside the province.
       bathymetry: { type: "geojson", data: abs("/bathymetry.json") },
