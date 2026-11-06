@@ -11,6 +11,8 @@ fixtures/*.mp4
 # The AGA detector (our own model, trained from scratch, 49 MB) ships with the repo
 !models/AGA_Model_cctv6.pt
 *.onnx
+# The same model as ONNX (tools/export_aga_onnx.py), so the hosted site runs AGA without torch
+!models/AGA_Model_cctv6.onnx
 *.engine
 
 # API keys for the free assistant (Groq / NVIDIA): never commit

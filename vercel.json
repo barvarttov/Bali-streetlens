@@ -14,7 +14,7 @@
   ],
   "functions": {
     "backend/main.py": {
-      "excludeFiles": "{web/node_modules/**,web/src/**,web/scripts/**,data/**,results/**,docs/**,eval/**,tools/**,vision/**,aga/**,models/**,**/test_*.py,**/*.mp4}"
+      "excludeFiles": "{web/node_modules/**,web/src/**,web/scripts/**,data/**,results/**,docs/**,eval/**,tools/**,vision/**,aga/**,models/*.pt,**/test_*.py,**/*.mp4}"
     }
   }
 }

@@ -84,9 +84,21 @@ npm run demo     # builds web/dist, then serves everything at http://127.0.0.1:8
 Team-tool keys: Space = play/pause, ←/→ = one frame, Shift+←/→ = one second. Count logger: M/C/B/T log a
 motorcycle/car/bus/truck crossing (Shift = outbound), 1–9 pick the count line, Z undoes the last one.
 
-## Live AGA on the hosted site (tunnel)
+## Live AGA on the hosted site
 
-The hosted site has no torch, so AGA runs on the vision machine and the site reaches it through a Cloudflare tunnel.
+The hosted site (Vercel) runs AGA itself, without torch: `models/AGA_Model_cctv6.onnx` is the same model exported to
+ONNX (`python tools/export_aga_onnx.py` on a machine with torch; rerun and commit after every retrain), read by
+`backend/aga_onnx.py` with onnxruntime. It gives the same detections as the `.pt`. There is no GPU there, so a camera
+gets one fresh frame about every 10 s and only while someone has it open (`AGA_REFRESH_S`).
+
+The free plan pauses the whole site for 30 days once its 4 CPU-hours a month are used, and one frame costs ~1.5 s of
+CPU. So each server instance stops analysing after `AGA_MAX_PER_HOUR` (120) or `AGA_MAX_PER_DAY` (300) frames, and the
+page asks nothing while its tab is hidden. Setting the Vercel env var `AGA_ONNX=0` switches hosted AGA off completely.
+Watch the usage at vercel.com → project → Usage → Functions → Active CPU.
+
+### Smoother live view from the vision machine (tunnel, optional)
+
+For continuous analysis (twice a second, with the GPU), the site can reach the vision machine through a Cloudflare tunnel.
 
 1. Install `cloudflared` (https://developers.cloudflare.com/cloudflare-one/connections/connect-networks/downloads/).
 2. `powershell -ExecutionPolicy Bypass -File tools\run-live.ps1` starts the backend and the tunnel and prints a link like
