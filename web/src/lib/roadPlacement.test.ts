@@ -9,7 +9,7 @@ const O: LngLat = [115.4037, -8.5355];
 const at = (e: number, n: number) => fromLocalMeters(O, [e, n]);
 
 // A straight east-west road: 20 m west of the snap point, 60 m east of it.
-const road: CameraRoad = { name: "Jl. Uji", width_m: 8, snap: at(0, 0), snap_index: 1, line: [at(-20, 0), at(0, 0), at(60, 0)] };
+const road: CameraRoad = { name: "Jl. Uji", width_m: 8, distance_m: 0, snap: at(0, 0), snap_index: 1, line: [at(-20, 0), at(0, 0), at(60, 0)] };
 
 test("the camera looks along the longer side of the road", () => {
   const f = roadFrame(road)!;
@@ -28,7 +28,7 @@ test("lateral offset goes to the right of the viewing direction", () => {
 });
 
 test("positions stay on the road ends and follow a bend", () => {
-  const bend: CameraRoad = { name: null, width_m: 6, snap: at(0, 0), snap_index: 0, line: [at(0, 0), at(10, 0), at(10, 30)] };
+  const bend: CameraRoad = { name: null, width_m: 6, distance_m: 0, snap: at(0, 0), snap_index: 0, line: [at(0, 0), at(10, 0), at(10, 30)] };
   const f = roadFrame(bend)!;
   const [e, n] = toLocalMeters(O, alongRoad(f, 25, 0).lnglat);
   assert.ok(Math.abs(e - 10) < 0.05 && Math.abs(n - 15) < 0.05, `${e}, ${n}`);
@@ -37,7 +37,7 @@ test("positions stay on the road ends and follow a bend", () => {
 });
 
 test("a road stub shorter than 5 m is not used", () => {
-  assert.equal(roadFrame({ name: null, width_m: 6, snap: at(0, 0), snap_index: 0, line: [at(0, 0), at(3, 0)] }), null);
+  assert.equal(roadFrame({ name: null, width_m: 6, distance_m: 0, snap: at(0, 0), snap_index: 0, line: [at(0, 0), at(3, 0)] }), null);
 });
 
 test("a camera with a known viewing direction looks from its position toward the look-at point", () => {

@@ -13,6 +13,8 @@ import { MapFrame, MapKey, ScaleBar } from "./MapFrame.tsx";
 import { BALI_LAND, MapView, corridorBounds, corridorCenter, prefersReducedMotion } from "./MapView.tsx";
 import type { Insets, LiveVehicles } from "./MapView.tsx";
 import { placeVehicles, useCameraLive, useCameraPlacement, useCameraRoad, useLiveCameraList } from "../live/useCameraLive.ts";
+import type { CameraRoad, Placement } from "../live/useCameraLive.ts";
+import type { Camera } from "../lib/liveSchema.ts";
 import { distanceKm, loadPlaces } from "./places.ts";
 import type { Place } from "./places.ts";
 import { routeBounds, useRoutes } from "./route.ts";
@@ -35,6 +37,21 @@ const CARD_LEFT = 36;
 const CARD_W = 400;
 /** Desktop chat panel width (keep in sync with --chat-w in public.css). */
 const CHAT_W = 380;
+
+/** An unchecked camera position farther than this from any road is probably wrong (one portal entry is in a
+ *  rice field): its vehicles are not drawn rather than drawn in the wrong place. */
+const ROAD_TRUST_M = 60;
+
+export type VehicleLayout = "calibrated" | "view" | "road" | "hidden";
+
+/** How AGA's vehicles for a camera are placed on the map, best first; "hidden" draws none (the count stays). */
+export function vehicleLayout(camera: Camera | null, placement: Placement | null, road: CameraRoad | null): VehicleLayout {
+  if (!camera) return "hidden";
+  if (placement) return "calibrated";
+  if (camera.look_at) return "view";
+  if (road && (camera.position_checked || road.distance_m <= ROAD_TRUST_M)) return "road";
+  return "hidden";
+}
 
 export function PublicApp() {
   const { t, lang } = useLang();
@@ -101,14 +118,21 @@ export function PublicApp() {
   const cameraLive = useCameraLive(watchedCameraId);
   const placement = useCameraPlacement(watchedCameraId);
   const road = useCameraRoad(watchedCameraId);
+  const layout = vehicleLayout(camera, placement, road);
   const liveVehicles = useMemo<LiveVehicles | null>(() => {
-    if (!camera || !watchedCameraId || cameraLive.kind !== "ok") return null;
+    if (!camera || !watchedCameraId || cameraLive.kind !== "ok" || layout === "hidden") return null;
     return {
       cameraId: camera.id,
       center: camera.lnglat,
-      vehicles: placeVehicles(cameraLive.data, camera.lnglat, placement, road, camera.look_at ?? null),
+      vehicles: placeVehicles(
+        cameraLive.data,
+        camera.lnglat,
+        layout === "calibrated" ? placement : null,
+        layout === "road" ? road : null,
+        layout === "view" ? (camera.look_at ?? null) : null,
+      ),
     };
-  }, [camera, watchedCameraId, cameraLive, placement, road]);
+  }, [camera, watchedCameraId, cameraLive, placement, road, layout]);
 
   // Unknown junction or camera in the URL: back to the island rather than a blank card.
   useEffect(() => {
@@ -349,9 +373,8 @@ export function PublicApp() {
       <CameraInfo
         camera={camera}
         live={watchedCameraId ? cameraLive : null}
-        calibrated={!!placement}
-        road={camera.look_at ? null : road}
-        viewDirection={!!camera.look_at}
+        layout={layout}
+        roadName={road?.name ?? null}
         onBack={() => (area ? navigate("/") : closeCard())}
       />
     );

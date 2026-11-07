@@ -8,6 +8,8 @@ import type { LngLat } from "./geo.ts";
 export interface CameraRoad {
   name: string | null;
   width_m: number;
+  /** Meters from the camera's listed position to the road. */
+  distance_m: number;
   snap: LngLat;
   snap_index: number;
   line: LngLat[];

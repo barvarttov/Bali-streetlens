@@ -99,7 +99,8 @@
    "look_at": [
     115.403741,
     -8.535285
-   ]
+   ],
+   "position_checked": true
   },
   {
    "id": "cctv-bale-bengong",
@@ -230,7 +231,8 @@
     115.174464,
     -8.717571
    ],
-   "lnglat_note": "Camera position clicked on Google Maps satellite by the team (2026-11-07), about 220 m west of the portal value (Poppies Lane II). Viewing direction not located yet."
+   "lnglat_note": "Camera position clicked on Google Maps satellite by the team (2026-11-07), about 220 m west of the portal value (Poppies Lane II). Viewing direction not located yet.",
+   "position_checked": true
   },
   {
    "id": "depan-pura-goa-lawah",
@@ -257,7 +259,8 @@
    "look_at": [
     115.1681335,
     -8.69384
-   ]
+   ],
+   "position_checked": true
   },
   {
    "id": "jl-arjuna-parkiran-pantai-doublesix",
@@ -316,7 +319,8 @@
     115.174562,
     -8.717386
    ],
-   "lnglat_note": "Camera position clicked on Google Maps satellite by the team (2026-11-07), about 30 m from the portal value. Viewing direction not located yet."
+   "lnglat_note": "Camera position clicked on Google Maps satellite by the team (2026-11-07), about 30 m from the portal value. Viewing direction not located yet.",
+   "position_checked": true
   },
   {
    "id": "pantai-jerman-co1-cctv1",
@@ -682,10 +686,16 @@
    "id": "simpang-lima",
    "name": "Simpang Lima",
    "lnglat": [
+    115.397435,
+    -8.534346
+   ],
+   "analyzed": false,
+   "lnglat_portal": [
     115.394877,
     -8.534306
    ],
-   "analyzed": false
+   "lnglat_note": "Estimated, not checked by the team: the only five-way junction within 1.2 km of the portal value (282 m east of it) in the OSM road graph. The satellite image shows a round statue island and a curved white-railed corner, as in the frame. The point is the junction, not the camera itself.",
+   "position_estimated": true
   },
   {
    "id": "simpang-padang-galak",
@@ -793,7 +803,8 @@
    "look_at": [
     115.1701257,
     -8.5438873
-   ]
+   ],
+   "position_checked": true
   },
   {
    "id": "taman-kota",
