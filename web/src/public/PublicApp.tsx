@@ -531,14 +531,6 @@ export function PublicApp() {
             </button>
           </>
         )}
-        {synthetic && !picking && (
-          <p className="tag-synthetic" role="note">
-            <span className="tag-long">{t("synthetic")}</span>
-            <span className="tag-short" aria-hidden="true">
-              {t("syntheticShort")}
-            </span>
-          </p>
-        )}
         {(notice || (!live.connected && live.snapshot)) && (
           <p className="toast" role="status">
             {notice ?? t("connectionLost", { time: formatClock(live.snapshot!.generated_at, lang) })}
