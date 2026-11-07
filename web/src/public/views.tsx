@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import { useLang } from "../i18n.tsx";
 import { compassOrder } from "../lib/direction.ts";
-import { useCameraLive } from "../live/useCameraLive.ts";
+import type { CameraLiveStatus } from "../live/useCameraLive.ts";
 import { JUNCTION_CAMERA } from "./junctionCameras.ts";
 import { JunctionLiveCounts, LiveCounts } from "./LiveCounts.tsx";
 import { LABEL_RANK } from "../lib/liveSchema.ts";
@@ -61,6 +61,9 @@ interface AreaProps {
   lastUpdate: number | null;
   showCameras: boolean;
   onToggleCameras: () => void;
+  /** Provincial cameras streaming right now; the ones near this area are listed and open on the map. */
+  liveCameras: Camera[];
+  onSelectCamera: (id: string) => void;
   onSelect: (id: string) => void;
   onClose: () => void;
   /** Opens the route planner with this area as the destination (not offered for the corridor). */
@@ -69,7 +72,22 @@ interface AreaProps {
 
 export const HERE_KM = 6;
 
-export function AreaView({ area, corridor, cameras, states, nowServer, synthetic, lastUpdate, showCameras, onToggleCameras, onSelect, onClose, onRoute }: AreaProps) {
+export function AreaView({
+  area,
+  corridor,
+  cameras,
+  states,
+  nowServer,
+  synthetic,
+  lastUpdate,
+  showCameras,
+  onToggleCameras,
+  liveCameras,
+  onSelectCamera,
+  onSelect,
+  onClose,
+  onRoute,
+}: AreaProps) {
   const { t, lang } = useLang();
   const withDist = corridor.junctions.map((j) => ({ j, s: states.get(j.id), km: distanceKm(area.center, j.center) }));
   const here = withDist
@@ -77,6 +95,33 @@ export function AreaView({ area, corridor, cameras, states, nowServer, synthetic
     .sort((a, b) => LABEL_RANK[b.s?.label ?? "unknown"] - LABEL_RANK[a.s?.label ?? "unknown"] || a.j.name.localeCompare(b.j.name));
   const nearest = here.length ? [] : [...withDist].sort((a, b) => a.km - b.km).slice(0, 3);
   const camsNear = cameras.filter((c) => !c.analyzed && distanceKm(area.center, c.lnglat) <= 3).length;
+  const liveNear = liveCameras
+    .map((c) => ({ c, km: distanceKm(area.center, c.lnglat) }))
+    .filter((x) => x.km <= HERE_KM)
+    .sort((a, b) => a.km - b.km)
+    .slice(0, 8);
+  const liveSection = liveNear.length > 0 && (
+    <section className="card-section">
+      <h3 className="section-title">{lang === "id" ? "Kamera langsung di sekitar sini" : "Live cameras nearby"}</h3>
+      <ul className="junction-index">
+        {liveNear.map(({ c, km }) => (
+          <li key={c.id}>
+            <button type="button" className="index-row" onClick={() => onSelectCamera(c.id)}>
+              <span className="camera-live-dot index-live-dot" aria-hidden="true" />
+              <span className="index-main">
+                <span className="index-name">{c.name}</span>
+                <span className="index-sub">{lang === "id" ? "Hitungan AGA + kendaraan 3D di peta" : "AGA count + 3D vehicles on the map"}</span>
+              </span>
+              <span className="index-side">
+                <span className="index-state is-live">{lang === "id" ? "Langsung" : "Live"}</span>
+                <span className="index-fresh">{t("km", { n: formatNumber(Math.round(km * 10) / 10, lang) })}</span>
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
 
   const sub = here.length
     ? `${t("watchedHere", { n: here.length })}${lastUpdate !== null ? ` · ${t("updated", { age: formatAge(nowServer - lastUpdate, t) })}` : ""}`
@@ -97,7 +142,9 @@ export function AreaView({ area, corridor, cameras, states, nowServer, synthetic
           <h3 className="section-title">{t("watchedTitle")}</h3>
           <JunctionIndex rows={here} nowServer={nowServer} synthetic={synthetic} onSelect={onSelect} />
         </section>
-      ) : (
+      ) : null}
+      {liveSection}
+      {here.length > 0 ? null : (
         <>
           <section className="card-section">
             <p className="none-here">{t("noneHere")}</p>
@@ -473,27 +520,69 @@ function WhyRules({ why, label }: { why: NonNullable<JunctionState["why"]>; labe
 
 // ---------------------------------------------------------------- un-analysed camera
 
-export function CameraInfo({ camera, onBack }: { camera: Camera; onBack: () => void }) {
+export function CameraInfo({
+  camera,
+  live,
+  calibrated,
+  onBack,
+}: {
+  camera: Camera;
+  /** AGA on this camera, or null when it is not streaming right now (or AGA is unavailable). */
+  live: CameraLiveStatus | null;
+  calibrated: boolean;
+  onBack: () => void;
+}) {
   const { t, lang } = useLang();
-  const live = useCameraLive(camera.id);
   const id = lang === "id";
-  const counting = live.kind === "ok" && live.data.camera_state === "live";
+  const counting = live?.kind === "ok" && live.data.camera_state === "live";
+  const refresh = live?.kind === "ok" ? live.data.refresh_s : undefined;
   return (
     <article className="camera-info" aria-labelledby="card-title">
       <CardHead title={camera.name} sub={t("camSource")} onBack={onBack} />
       <section className="card-section">
         {counting ? (
-          <LiveCounts live={live} cameraId={camera.id} />
+          <>
+            <LiveCounts live={live} cameraId={camera.id} />
+            <p className="why-sentence">
+              {calibrated
+                ? id
+                  ? "Kendaraan 3D di peta ditempatkan dari kalibrasi kamera ini."
+                  : "The 3D vehicles on the map are placed from this camera's calibration."
+                : id
+                  ? "Kendaraan 3D di peta digambar di sekitar titik kamera. Kamera ini belum dikalibrasi, jadi jalur dan jaraknya hanya perkiraan; jumlahnya nyata."
+                  : "The 3D vehicles on the map are drawn around the camera. It is not calibrated yet, so lanes and distances are only a guess; the number is real."}
+            </p>
+            {refresh && (
+              <p className="why-sentence">
+                {id
+                  ? `Diperbarui sekitar setiap ${refresh} detik (AGA berjalan di server tanpa GPU).`
+                  : `Updated about every ${refresh} s (AGA runs on a server without a GPU).`}
+              </p>
+            )}
+          </>
         ) : (
           <>
             <StateWord label="unknown" size="md" />
             <p className="state-summary">{t("camTitle")}</p>
             <p className="why-sentence">{t("camBody")}</p>
-            {live.kind === "ok" && live.data.camera_state === "connecting" && (
+            {(live === null || live.kind === "unavailable") && (
+              <p className="why-sentence">
+                {id ? "Kamera ini sedang tidak menyala, jadi AGA belum bisa menghitungnya." : "This camera is not streaming right now, so AGA cannot count it."}
+              </p>
+            )}
+            {(live?.kind === "loading" || (live?.kind === "ok" && live.data.camera_state === "connecting")) && (
               <p className="why-sentence">{id ? "Menghubungkan ke kamera…" : "Connecting to the camera…"}</p>
             )}
-            {live.kind === "ok" && live.data.camera_state === "offline" && (
-              <p className="why-sentence">{id ? "Kamera ini sedang mati atau tidak mengirim gambar." : "This camera is off or sends no picture."}</p>
+            {live?.kind === "ok" && live.data.camera_state === "offline" && (
+              <p className="why-sentence">
+                {live.data.problem?.startsWith("batas")
+                  ? id
+                    ? "Batas analisis AGA untuk sementara tercapai. Coba lagi nanti."
+                    : "AGA's analysis limit is reached for now. Try again later."
+                  : id
+                    ? "Kamera ini sedang mati atau tidak mengirim gambar."
+                    : "This camera is off or sends no picture."}
+              </p>
             )}
           </>
         )}

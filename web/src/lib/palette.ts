@@ -68,6 +68,9 @@ export const COLORS = {
   plateText: "#FFFFFF",
   camera: "#FFFFFF",
   cameraStroke: "#4E555B",
+  // A provincial camera that streams right now (AGA can count it): filled brand ink, white ring
+  cameraLive: "#606C38",
+  cameraLiveStroke: "#FFFFFF",
   // Three.js
   vehicleMoving: "#2B3238",
   vehicleStale: "#AEB5BA",
