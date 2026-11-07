@@ -16,6 +16,7 @@ import type { LngLat } from "../lib/geo.ts";
 import { COLORS, hex, vehicleColor } from "../lib/palette.ts";
 import { shapeGeometry, SHAPES } from "../lib/traffic3d/shapes.ts";
 import { localFrame, toLocal } from "../lib/traffic3d/lanes.ts";
+import { glideDuration, glideFraction, lerp } from "./glide.ts";
 import type { VehicleClass } from "../lib/schema.ts";
 
 // AGA's vehicles for one live camera, drawn as Three.js meshes inside the public map's WebGL context, so
@@ -41,24 +42,39 @@ const MAX_PER_CLASS = 200;
 
 interface Entry {
   cls: VehicleClass;
+  /** Where it is drawn now. */
   x: number;
   z: number;
+  /** Where the current glide started and where it ends (local meters). */
+  sx: number;
+  sz: number;
   tx: number;
   tz: number;
+  /** When the glide started and how long it lasts (ms, performance.now clock). */
+  t0: number;
+  dur: number;
   heading: number;
+  /** The way it is travelling; `heading` turns toward it a little each frame. */
+  th: number;
 }
 
-function angleToward(from: number, to: number, k: number): number {
+/** Shortest signed turn from one heading to another (-PI..PI). */
+function angleDiff(from: number, to: number): number {
   let d = to - from;
   while (d > Math.PI) d -= 2 * Math.PI;
   while (d < -Math.PI) d += 2 * Math.PI;
-  return from + d * k;
+  return d;
+}
+
+function angleToward(from: number, to: number, k: number): number {
+  return from + angleDiff(from, to) * k;
 }
 
 /** A custom layer centred on one camera. Make a new one when another camera is opened. */
 export function createLiveVehicleLayer(center: LngLat): LiveVehicleLayer {
   const frame = localFrame(center);
   const entries = new Map<number, Entry>();
+  let lastChange = 0; // when a vehicle last got a NEW position (an unchanged poll must not restart the glide)
   let map: MlMap | null = null;
   let renderer: WebGLRenderer | null = null;
   const repaint = () => map?.triggerRepaint();
@@ -112,11 +128,14 @@ export function createLiveVehicleLayer(center: LngLat): LiveVehicleLayer {
       if (!renderer || !map) return;
       const counts: Record<VehicleClass, number> = { motorcycle: 0, car: 0, bus: 0, truck: 0 };
       let moving = false;
+      const now = performance.now();
       for (const e of entries.values()) {
-        // Glide to the newest position instead of jumping.
-        e.x += (e.tx - e.x) * 0.2;
-        e.z += (e.tz - e.z) * 0.2;
-        if (Math.abs(e.tx - e.x) + Math.abs(e.tz - e.z) > 0.02) moving = true;
+        // Constant-speed glide from the old place to the new one, arriving as the next update lands.
+        const u = glideFraction(e.t0, e.dur, now);
+        e.x = lerp(e.sx, e.tx, u);
+        e.z = lerp(e.sz, e.tz, u);
+        e.heading = angleToward(e.heading, e.th, 0.15);
+        if (u < 1 || Math.abs(angleDiff(e.heading, e.th)) > 0.02) moving = true;
         const i = counts[e.cls]++;
         if (i >= MAX_PER_CLASS) continue;
         q.setFromAxisAngle(up, e.heading);
@@ -139,22 +158,38 @@ export function createLiveVehicleLayer(center: LngLat): LiveVehicleLayer {
   return {
     layer,
     setVehicles(vehicles) {
+      const now = performance.now();
       const seen = new Set<number>();
+      const fresh: { id: number; cls: VehicleClass; x: number; z: number }[] = [];
+      let changed = false;
       for (const v of vehicles) {
         if (!Number.isFinite(v.lnglat[0]) || !Number.isFinite(v.lnglat[1])) continue;
         const [x, z] = toLocal(frame, v.lnglat);
         seen.add(v.id);
+        fresh.push({ id: v.id, cls: v.cls, x, z });
+        const e = entries.get(v.id);
+        if (!e || Math.abs(e.tx - x) + Math.abs(e.tz - z) > 0.05) changed = true;
+      }
+      // One duration for every vehicle: the time since the feed last moved anything.
+      const dur = glideDuration(lastChange ? now - lastChange : 0);
+      if (changed) lastChange = now;
+      for (const v of fresh) {
         const e = entries.get(v.id);
         if (!e) {
-          entries.set(v.id, { cls: v.cls, x, z, tx: x, tz: z, heading: 0 });
+          entries.set(v.id, { cls: v.cls, x: v.x, z: v.z, sx: v.x, sz: v.z, tx: v.x, tz: v.z, t0: now, dur: 0, heading: 0, th: 0 });
           continue;
         }
         e.cls = v.cls;
-        const dx = x - e.tx;
-        const dz = z - e.tz;
-        if (Math.hypot(dx, dz) > 0.6) e.heading = angleToward(e.heading, Math.atan2(-dz, dx), 0.5);
-        e.tx = x;
-        e.tz = z;
+        const dx = v.x - e.tx;
+        const dz = v.z - e.tz;
+        if (Math.abs(dx) + Math.abs(dz) <= 0.05) continue; // same answer as before: keep gliding
+        if (Math.hypot(dx, dz) > 0.6) e.th = Math.atan2(-dz, dx);
+        e.sx = e.x; // continue from where it is drawn, not from where the last glide was meant to end
+        e.sz = e.z;
+        e.tx = v.x;
+        e.tz = v.z;
+        e.t0 = now;
+        e.dur = dur;
       }
       for (const id of entries.keys()) if (!seen.has(id)) entries.delete(id);
       repaint();

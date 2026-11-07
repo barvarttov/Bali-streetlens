@@ -89,7 +89,7 @@ export function useCameraLive(cameraId: string | null): CameraLiveStatus {
       if (pageVisible()) void watch();
     }, 20_000);
     // One request at a time (on the hosted site a poll may analyse a frame for a few seconds), never while hidden.
-    let every = 1500;
+    let every = 700;
     let timer = 0;
     const tick = () => {
       if (closed) return;
@@ -100,7 +100,7 @@ export function useCameraLive(cameraId: string | null): CameraLiveStatus {
       call<CameraLive>(`/api/live/camera/${encodeURIComponent(cameraId)}`)
         .then((data) => {
           if (closed) return;
-          every = pollDelay(1500, data.refresh_s);
+          every = pollDelay(700, data.refresh_s);
           setStatus({ kind: "ok", data });
         })
         .catch(() => undefined) // the watch call reports real problems; a 404 just means "not started yet"
@@ -150,8 +150,8 @@ export function useCameraPlacement(cameraId: string | null): Placement | null {
 
 // Without a calibration the position is a rough guess: the camera is assumed to look north at a road 30 m
 // wide and 40 m deep, and the vehicles are drawn faded and enlarged so nobody takes them for measured.
-const SKETCH_WIDTH_M = 30;
-const SKETCH_DEPTH_M = 40;
+const SKETCH_WIDTH_M = 60;
+const SKETCH_DEPTH_M = 80;
 const SKETCH_NEAR_M = 6;
 
 export function placeVehicles(o: CameraLive, cameraLngLat: LngLat, placement: Placement | null): MapVehicle[] {
