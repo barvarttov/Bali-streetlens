@@ -1,29 +1,35 @@
 import { useEffect, useId, useMemo, useState } from "react";
-import { MagnifyingGlass, MapPin, Signpost, X } from "@phosphor-icons/react";
-import { navigate } from "../router.ts";
+import { MagnifyingGlass, MapPin, Signpost, VideoCamera, X } from "@phosphor-icons/react";
 import { useLang } from "../i18n.tsx";
 import type { StringKey } from "../i18n.tsx";
 import { LABEL_RANK } from "../lib/liveSchema.ts";
-import type { Corridor, JunctionState } from "../lib/liveSchema.ts";
+import type { Camera, Corridor, JunctionState } from "../lib/liveSchema.ts";
 import { StateMark } from "./parts.tsx";
 import { loadPlaces, matchScore, normalize, searchPlaces } from "./places.ts";
 import type { Place } from "./places.ts";
 
-// "Mau ke mana?": one field for any place in Bali and the watched junctions. Focusing it with nothing
-// typed lists the watched junctions, worst first, so every junction is reachable without the map.
+// "Mau ke mana?": one field for any place in Bali, the watched junctions and the provincial cameras that
+// stream right now. Focusing it with nothing typed lists the watched junctions, worst first, then the live
+// cameras, so each of them is reachable without the map.
 
 interface Props {
   corridor: Corridor;
   states: Map<string, JunctionState>;
+  /** Provincial cameras streaming right now (AGA can count them). */
+  liveCameras: Camera[];
   onPickJunction: (id: string) => void;
+  onPickCamera: (id: string) => void;
   onPickPlace: (place: Place) => void;
   /** Opens the route planner. */
   onRoute: () => void;
 }
 
-type Result = { kind: "junction"; id: string; name: string; sub: string } | { kind: "place"; place: Place };
+type Result =
+  | { kind: "junction"; id: string; name: string; sub: string }
+  | { kind: "camera"; id: string; name: string }
+  | { kind: "place"; place: Place };
 
-export function SearchBar({ corridor, states, onPickJunction, onPickPlace, onRoute }: Props) {
+export function SearchBar({ corridor, states, liveCameras, onPickJunction, onPickCamera, onPickPlace, onRoute }: Props) {
   const { t, lang, setLang } = useLang();
   const listId = useId();
   const [query, setQuery] = useState("");
@@ -43,19 +49,27 @@ export function SearchBar({ corridor, states, onPickJunction, onPickPlace, onRou
       .filter((x) => x.s > 0)
       .sort((a, b) => b.s - a.s || LABEL_RANK[label(b.j.id)] - LABEL_RANK[label(a.j.id)])
       .map(({ j }) => ({ kind: "junction", id: j.id, name: j.name, sub: j.roads.join(" × ") }));
-    if (q.length === 0) return junctions;
-    return [...junctions, ...searchPlaces(places, query).map((place) => ({ kind: "place" as const, place }))];
-  }, [query, corridor, places, states]);
+    const cameras: Result[] = liveCameras
+      .map((c) => ({ c, s: q.length ? matchScore(q, c.name) : 1 }))
+      .filter((x) => x.s > 0)
+      .sort((a, b) => b.s - a.s || a.c.name.localeCompare(b.c.name))
+      .map(({ c }) => ({ kind: "camera", id: c.id, name: c.name }));
+    if (q.length === 0) return [...junctions, ...cameras];
+    return [...junctions, ...cameras, ...searchPlaces(places, query).map((place) => ({ kind: "place" as const, place }))];
+  }, [query, corridor, places, states, liveCameras]);
 
   const choose = (r: Result) => {
     setOpen(false);
     setQuery("");
     (document.activeElement as HTMLElement | null)?.blur();
     if (r.kind === "junction") onPickJunction(r.id);
+    else if (r.kind === "camera") onPickCamera(r.id);
     else onPickPlace(r.place);
   };
 
-  const firstPlace = results.findIndex((r) => r.kind === "place");
+  const firstOfKind = (i: number) => i === 0 || results[i - 1].kind !== results[i].kind;
+  const groupLabel = (kind: Result["kind"]) =>
+    kind === "junction" ? t("groupJunctions") : kind === "camera" ? (lang === "id" ? "Kamera langsung" : "Live cameras") : t("groupPlaces");
   // "Pantai · dekat Kuta", without repeating a kind the name already says ("Pantai Kuta").
   const placeSub = (p: Place) => {
     const kind = t(`kind_${p.k}` as StringKey);
@@ -114,9 +128,6 @@ export function SearchBar({ corridor, states, onPickJunction, onPickPlace, onRou
           <Signpost size={20} weight="bold" aria-hidden="true" />
           <span className="search-route-text">{t("routeButton")}</span>
         </button>
-        <button type="button" className="search-route" onClick={() => navigate("/langsung")} title="CCTV langsung dengan AGA">
-          <span className="search-route-text">CCTV langsung</span>
-        </button>
         <div className="lang-toggle" role="group" aria-label={t("langLabel")}>
           <button type="button" aria-pressed={lang === "id"} onClick={() => setLang("id")} lang="id">
             ID
@@ -134,13 +145,13 @@ export function SearchBar({ corridor, states, onPickJunction, onPickPlace, onRou
             </li>
           )}
           {results.map((r, i) => [
-            (i === 0 && r.kind === "junction") || i === firstPlace ? (
+            firstOfKind(i) ? (
               <li key={`group-${r.kind}`} role="presentation" className="search-group">
-                {r.kind === "junction" ? t("groupJunctions") : t("groupPlaces")}
+                {groupLabel(r.kind)}
               </li>
             ) : null,
             <li
-              key={r.kind === "junction" ? r.id : `${r.place.n}-${r.place.c.join()}`}
+              key={r.kind === "place" ? `${r.place.n}-${r.place.c.join()}` : `${r.kind}-${r.id}`}
               id={`${listId}-${i}`}
               role="option"
               aria-selected={i === active}
@@ -157,6 +168,14 @@ export function SearchBar({ corridor, states, onPickJunction, onPickPlace, onRou
                     <span className="result-sub">{r.sub}</span>
                   </span>
                   <span className={`result-state is-${states.get(r.id)?.label ?? "unknown"}`}>{t(states.get(r.id)?.label ?? "unknown")}</span>
+                </>
+              ) : r.kind === "camera" ? (
+                <>
+                  <VideoCamera size={20} weight="bold" className="result-pin result-live" aria-hidden="true" />
+                  <span className="result-main">
+                    <span className="result-name">{r.name}</span>
+                    <span className="result-sub">{lang === "id" ? "CCTV provinsi · dihitung AGA" : "Provincial CCTV · counted by AGA"}</span>
+                  </span>
                 </>
               ) : (
                 <>

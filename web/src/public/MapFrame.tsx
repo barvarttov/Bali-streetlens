@@ -155,9 +155,18 @@ export function ScaleBar({ map }: { map: MlMap | null }) {
   );
 }
 
-/** The sheet's key: what each printed mark means, and the provincial cameras layer. */
-export function MapKey({ showCameras, onToggleCameras }: { showCameras: boolean; onToggleCameras: () => void }) {
-  const { t } = useLang();
+/** The sheet's key: what each printed mark means, the live cameras, and the provincial cameras layer. */
+export function MapKey({
+  showCameras,
+  onToggleCameras,
+  liveCount,
+}: {
+  showCameras: boolean;
+  onToggleCameras: () => void;
+  /** How many provincial cameras stream right now; null until known. */
+  liveCount: number | null;
+}) {
+  const { t, lang } = useLang();
   return (
     <section className="map-key" aria-label={t("legendLabel")}>
       <ul className="key-marks">
@@ -168,6 +177,12 @@ export function MapKey({ showCameras, onToggleCameras }: { showCameras: boolean;
           </li>
         ))}
       </ul>
+      {liveCount !== null && liveCount > 0 && (
+        <span className="key-live">
+          <span className="key-live-dot" aria-hidden="true" />
+          {lang === "id" ? `Kamera langsung (${liveCount})` : `Live cameras (${liveCount})`}
+        </span>
+      )}
       <label className="key-cameras">
         <input type="checkbox" checked={showCameras} onChange={onToggleCameras} />
         <span className="key-camera-dot" aria-hidden="true" />

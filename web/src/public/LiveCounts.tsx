@@ -1,7 +1,6 @@
 import { useLang } from "../i18n.tsx";
 import { useCameraLive } from "../live/useCameraLive.ts";
 import type { CameraLiveStatus } from "../live/useCameraLive.ts";
-import { navigate } from "../router.ts";
 
 // Real vehicle counts from AGA (our own detector) for one provincial camera, shown on a card.
 // Opening the card asks the backend to analyse that camera; closing it stops. Nothing here is a
@@ -14,7 +13,7 @@ interface Props {
   besideSynthetic?: boolean;
 }
 
-export function LiveCounts({ live, cameraId, besideSynthetic = false }: Props) {
+export function LiveCounts({ live, besideSynthetic = false }: Props) {
   const { lang } = useLang();
   const id = lang === "id";
   const counting = live.kind === "ok" && live.data.camera_state === "live";
@@ -61,9 +60,6 @@ export function LiveCounts({ live, cameraId, besideSynthetic = false }: Props) {
             ? "Ini kendaraan yang terlihat di gambar sekarang, bukan arus per menit, dan belum ada label lancar/padat/macet karena kamera ini belum dikonfigurasi. AGA bisa melewatkan kendaraan, terutama saat hujan dan malam."
             : "These are the vehicles in the picture right now, not a flow per minute, and there is no lancar/padat/macet label because this camera is not configured yet. AGA can miss vehicles, especially in rain and at night."}
       </p>
-      <button type="button" className="search-route" onClick={() => navigate(`/langsung/${encodeURIComponent(cameraId)}`)}>
-        <span className="search-route-text">{id ? "Lihat dalam 3D" : "View in 3D"}</span>
-      </button>
     </>
   );
 }
