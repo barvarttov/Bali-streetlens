@@ -123,6 +123,6 @@ The site works only while this PC is on and online.
 - One fixed camera. Positions in 3D are approximate (flat-road homography).
 - Every number shown must come from a measured run. The synthetic clip is always badged and bannered.
 - No plates, faces or identities are stored. Track IDs are temporary and per clip (in the spirit of Indonesia's PDP law, UU 27/2022).
-- Footage needs written permission from its operator. Record it in `LICENSES.md`.
+- The CCTV streams are public and the competition rules need no separate permission (see `LICENSES.md`). Even so, no frame or video is stored or shown: only anonymous 3D shapes and counts.
 
 Licenses and attribution: [`LICENSES.md`](LICENSES.md).
