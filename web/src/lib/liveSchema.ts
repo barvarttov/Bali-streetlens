@@ -39,6 +39,8 @@ export interface Camera {
   name: string;
   lnglat: LngLat;
   analyzed: boolean;
+  /** The point in the middle of the camera's picture, when the team has located it (config/cameras.json). */
+  look_at?: LngLat;
 }
 
 export type TrafficLabel = "lancar" | "padat" | "macet" | "unknown";

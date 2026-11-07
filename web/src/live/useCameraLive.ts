@@ -3,7 +3,7 @@ import { normalizeConfig } from "../lib/config.ts";
 import { calibrate, imageToWorld } from "../lib/homography.ts";
 import type { Calibration } from "../lib/homography.ts";
 import { fromLocalMeters } from "../lib/geo.ts";
-import { alongRoad, roadFrame } from "../lib/roadPlacement.ts";
+import { alongRoad, roadFrame, viewFrame } from "../lib/roadPlacement.ts";
 import type { CameraRoad } from "../lib/roadPlacement.ts";
 export type { CameraRoad } from "../lib/roadPlacement.ts";
 import type { LngLat } from "../lib/geo.ts";
@@ -184,13 +184,19 @@ export function placeVehicles(
   cameraLngLat: LngLat,
   placement: Placement | null,
   road: CameraRoad | null = null,
+  lookAt: LngLat | null = null,
 ): MapVehicle[] {
   const size = o.frame_size;
   if (!size || !o.objects) return [];
-  const frame = !placement && road ? roadFrame(road) : null;
-  return o.objects.map((v) => {
-    const w = placement ? imageToWorld(placement.cal, v.ground_px) : null;
-    if (placement && w) return { id: v.track_id, cls: v.cls, lnglat: fromLocalMeters(placement.origin, w) };
+  // A known viewing direction (camera position + the point in the middle of its picture) beats the nearest road.
+  const frame = placement ? null : lookAt ? viewFrame(cameraLngLat, lookAt) : road ? roadFrame(road) : null;
+  return o.objects.flatMap((v): MapVehicle[] => {
+    if (placement) {
+      const w = imageToWorld(placement.cal, v.ground_px);
+      // Above the horizon or absurdly far: no place on the road, so not drawn (the count still has it).
+      if (!w || Math.hypot(w[0], w[1]) > 150) return [];
+      return [{ id: v.track_id, cls: v.cls, lnglat: fromLocalMeters(placement.origin, w) }];
+    }
     const across = Math.max(0, Math.min(1, v.ground_px[0] / size[0]));
     const up = Math.max(0, Math.min(1, 1 - v.ground_px[1] / size[1]));
     if (frame) {
@@ -199,9 +205,9 @@ export function placeVehicles(
       const s = ROAD_NEAR_M + (far - ROAD_NEAR_M) * Math.pow(up, 1.6);
       const half = Math.max(1, frame.width / 2 - 0.8);
       const p = alongRoad(frame, s, Math.max(-half, Math.min(half, (across - 0.5) * frame.width)));
-      return { id: v.track_id, cls: v.cls, lnglat: p.lnglat, heading: p.heading };
+      return [{ id: v.track_id, cls: v.cls, lnglat: p.lnglat, heading: p.heading }];
     }
     const lnglat = fromLocalMeters(cameraLngLat, [(across - 0.5) * SKETCH_WIDTH_M, SKETCH_NEAR_M + up * SKETCH_DEPTH_M]);
-    return { id: v.track_id, cls: v.cls, lnglat };
+    return [{ id: v.track_id, cls: v.cls, lnglat }];
   });
 }

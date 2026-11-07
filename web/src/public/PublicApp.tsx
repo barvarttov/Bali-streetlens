@@ -106,7 +106,7 @@ export function PublicApp() {
     return {
       cameraId: camera.id,
       center: camera.lnglat,
-      vehicles: placeVehicles(cameraLive.data, camera.lnglat, placement, road),
+      vehicles: placeVehicles(cameraLive.data, camera.lnglat, placement, road, camera.look_at ?? null),
     };
   }, [camera, watchedCameraId, cameraLive, placement, road]);
 
@@ -350,7 +350,8 @@ export function PublicApp() {
         camera={camera}
         live={watchedCameraId ? cameraLive : null}
         calibrated={!!placement}
-        road={road}
+        road={camera.look_at ? null : road}
+        viewDirection={!!camera.look_at}
         onBack={() => (area ? navigate("/") : closeCard())}
       />
     );

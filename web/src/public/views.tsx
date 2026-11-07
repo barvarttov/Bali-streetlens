@@ -525,6 +525,7 @@ export function CameraInfo({
   live,
   calibrated,
   road,
+  viewDirection = false,
   onBack,
 }: {
   camera: Camera;
@@ -533,6 +534,8 @@ export function CameraInfo({
   calibrated: boolean;
   /** Without a calibration: the nearest OSM road the vehicles are laid along (null: none within 150 m). */
   road: { name: string | null } | null;
+  /** The camera's position and viewing direction are known (not a calibration). */
+  viewDirection?: boolean;
   onBack: () => void;
 }) {
   const { t, lang } = useLang();
@@ -552,7 +555,11 @@ export function CameraInfo({
                 ? id
                   ? "Kendaraan 3D di peta ditempatkan dari kalibrasi kamera ini."
                   : "The 3D vehicles on the map are placed from this camera's calibration."
-                : road
+                : viewDirection
+                  ? id
+                    ? "Kendaraan 3D di peta dibentangkan dari posisi kamera ke arah pandangnya. Kamera ini belum dikalibrasi, jadi letak tepatnya perkiraan; jumlahnya nyata."
+                    : "The 3D vehicles on the map are laid out from the camera toward where it looks. It is not calibrated yet, so the exact spots are estimates; the number is real."
+                  : road
                   ? id
                     ? `Kendaraan 3D di peta ditaruh di sepanjang ${roadName}, jalan terdekat dari titik kamera. Kamera ini belum dikalibrasi, jadi letak tepatnya perkiraan; jumlahnya nyata.`
                     : `The 3D vehicles on the map are laid along ${roadName}, the road nearest the camera. It is not calibrated yet, so the exact spots are estimates; the number is real.`

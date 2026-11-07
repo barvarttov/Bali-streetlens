@@ -57,3 +57,25 @@ export function alongRoad(f: RoadFrame, s: number, lateral: number): { lnglat: L
   const y = a[1] + (b[1] - a[1]) * t - tx * lateral;
   return { lnglat: fromLocalMeters(f.origin, [x, y]), heading: Math.atan2(ty, tx) };
 }
+
+/** Width of the ground a junction camera sees across its picture, and how far past the look-at point it reaches. */
+const VIEW_WIDTH_M = 24;
+const VIEW_PAST_LOOK_AT = 2.2;
+
+/** A straight "road" from the camera through the point in the middle of its picture: for a camera whose position
+ *  and viewing direction are known but which has no calibration. */
+export function viewFrame(camera: LngLat, lookAt: LngLat): RoadFrame | null {
+  const [e, n] = toLocalMeters(camera, lookAt);
+  const d = Math.hypot(e, n);
+  if (d < 2) return null;
+  const len = Math.max(30, Math.min(80, d * VIEW_PAST_LOOK_AT));
+  return {
+    origin: camera,
+    pts: [
+      [0, 0],
+      [(e / d) * len, (n / d) * len],
+    ],
+    cum: [0, len],
+    width: VIEW_WIDTH_M,
+  };
+}

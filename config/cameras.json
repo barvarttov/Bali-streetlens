@@ -87,15 +87,19 @@
    "id": "catus-pata",
    "name": "Catus Pata",
    "lnglat": [
-    115.403741,
-    -8.53556
+    115.4038334,
+    -8.5352323
    ],
    "lnglat_portal": [
     115.401152,
     -8.535314
    ],
-   "lnglat_note": "The portal lists this camera 285 m west of the statue, on a side road. The statue is at -8.535285, 115.403741 (clicked on Google Maps satellite). The camera sits on the south side of the junction looking north: about 28 m south of the statue. Approximate; replace with a surveyed position.",
-   "analyzed": false
+   "lnglat_note": "Camera position clicked on Google Maps satellite by the team (2026-11-07): the north-east corner of the junction, about 12 m from the statue, looking south-west at it (the frame shows the statue on the right and Kertha Gosa behind it). look_at is the statue (-8.535285, 115.403741). The portal lists the camera 285 m west, on a side road. Not a calibration: the 3D vehicles are laid out in the camera's viewing direction as an estimate.",
+   "analyzed": false,
+   "look_at": [
+    115.403741,
+    -8.535285
+   ]
   },
   {
    "id": "cctv-bale-bengong",
@@ -290,10 +294,15 @@
    "id": "monumen-ground-zeropojok-panin",
    "name": "Monumen Ground Zero/Pojok Panin",
    "lnglat": [
+    115.17433,
+    -8.7175723
+   ],
+   "analyzed": false,
+   "lnglat_portal": [
     115.174562,
     -8.717386
    ],
-   "analyzed": false
+   "lnglat_note": "Camera position clicked on Google Maps satellite by the team (2026-11-07), about 30 m from the portal value. Viewing direction not located yet."
   },
   {
    "id": "pantai-jerman-co1-cctv1",

@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { fromLocalMeters, toLocalMeters } from "./geo.ts";
 import type { LngLat } from "./geo.ts";
-import { alongRoad, roadFrame } from "./roadPlacement.ts";
+import { alongRoad, roadFrame, viewFrame } from "./roadPlacement.ts";
 import type { CameraRoad } from "./roadPlacement.ts";
 
 const O: LngLat = [115.4037, -8.5355];
@@ -38,4 +38,15 @@ test("positions stay on the road ends and follow a bend", () => {
 
 test("a road stub shorter than 5 m is not used", () => {
   assert.equal(roadFrame({ name: null, width_m: 6, snap: at(0, 0), snap_index: 0, line: [at(0, 0), at(3, 0)] }), null);
+});
+
+test("a camera with a known viewing direction looks from its position toward the look-at point", () => {
+  const cam = at(10, 6);
+  const f = viewFrame(cam, at(0, 0))!;
+  assert.ok(f);
+  const p = alongRoad(f, Math.hypot(10, 6), 0); // exactly as far as the look-at point
+  const [e, n] = toLocalMeters(O, p.lnglat);
+  assert.ok(Math.abs(e) < 0.1 && Math.abs(n) < 0.1, `${e}, ${n}`);
+  assert.ok(Math.abs(p.heading - Math.atan2(-6, -10)) < 1e-6); // facing south-west
+  assert.equal(viewFrame(cam, cam), null);
 });
