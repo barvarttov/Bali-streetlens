@@ -64,7 +64,7 @@ export interface LiveVehicles {
 }
 
 /** Close enough that AGA's vehicles around a camera read in 3D. */
-export const CAMERA_ZOOM = 18.3;
+export const CAMERA_ZOOM = 18.0;
 
 /** The provincial cameras (not the analysed corridor ones), with live = 1 when they stream right now. */
 function cameraFeatures(cameras: Camera[], liveIds: Set<string> | null): FeatureCollection {
