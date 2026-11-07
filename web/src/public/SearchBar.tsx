@@ -174,7 +174,7 @@ export function SearchBar({ corridor, states, liveCameras, onPickJunction, onPic
                   <VideoCamera size={20} weight="bold" className="result-pin result-live" aria-hidden="true" />
                   <span className="result-main">
                     <span className="result-name">{r.name}</span>
-                    <span className="result-sub">{lang === "id" ? "CCTV provinsi · dihitung AGA" : "Provincial CCTV · counted by AGA"}</span>
+                    <span className="result-sub">{lang === "id" ? "Kamera CCTV · langsung" : "CCTV camera · live"}</span>
                   </span>
                 </>
               ) : (

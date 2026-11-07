@@ -374,7 +374,6 @@ export function PublicApp() {
         camera={camera}
         live={watchedCameraId ? cameraLive : null}
         layout={layout}
-        roadName={road?.name ?? null}
         onBack={() => (area ? navigate("/") : closeCard())}
       />
     );

@@ -2219,6 +2219,12 @@ a.btn {
 }
 
 /* Camera card: real AGA counts (live/useCameraLive.ts) */
+.card-footnote {
+  margin: 10px 0 0;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--ink-2);
+}
 .camera-live-counts {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
