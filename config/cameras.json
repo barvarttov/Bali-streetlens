@@ -772,10 +772,19 @@
    "id": "taman-bencingah-mengwi-co1-cctv1",
    "name": "Taman Bencingah Mengwi-CO1 CCTV1",
    "lnglat": [
+    115.1702438,
+    -8.5440411
+   ],
+   "analyzed": false,
+   "lnglat_portal": [
     115.167648,
     -8.544059
    ],
-   "analyzed": false
+   "lnglat_note": "Camera position clicked on Google Maps satellite by the team (2026-11-07), about 285 m east of the portal value, at the tip of the curved garden on the south-east corner of the junction. look_at is the middle of the paved junction (about 13 m west, 17 m north of the camera), estimated from the satellite image and the frame (curved planted curb on the right, the road running away ahead). Not a calibration.",
+   "look_at": [
+    115.1701257,
+    -8.5438873
+   ]
   },
   {
    "id": "taman-kota",
