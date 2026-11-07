@@ -374,7 +374,6 @@ export function PublicApp() {
         camera={camera}
         live={watchedCameraId ? cameraLive : null}
         layout={layout}
-        roadName={road?.name ?? null}
         onBack={() => (area ? navigate("/") : closeCard())}
       />
     );
@@ -531,14 +530,6 @@ export function PublicApp() {
               {t("pickConfirm")}
             </button>
           </>
-        )}
-        {synthetic && !picking && (
-          <p className="tag-synthetic" role="note">
-            <span className="tag-long">{t("synthetic")}</span>
-            <span className="tag-short" aria-hidden="true">
-              {t("syntheticShort")}
-            </span>
-          </p>
         )}
         {(notice || (!live.connected && live.snapshot)) && (
           <p className="toast" role="status">

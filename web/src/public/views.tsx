@@ -110,7 +110,7 @@ export function AreaView({
               <span className="camera-live-dot index-live-dot" aria-hidden="true" />
               <span className="index-main">
                 <span className="index-name">{c.name}</span>
-                <span className="index-sub">{lang === "id" ? "Hitungan AGA + kendaraan 3D di peta" : "AGA count + 3D vehicles on the map"}</span>
+                <span className="index-sub">{lang === "id" ? "Lihat keadaan jalan sekarang" : "See the road right now"}</span>
               </span>
               <span className="index-side">
                 <span className="index-state is-live">{lang === "id" ? "Langsung" : "Live"}</span>
@@ -524,23 +524,19 @@ export function CameraInfo({
   camera,
   live,
   layout,
-  roadName,
   onBack,
 }: {
   camera: Camera;
-  /** AGA on this camera, or null when it is not streaming right now (or AGA is unavailable). */
+  /** What the camera sees now, or null when it is not streaming right now. */
   live: CameraLiveStatus | null;
   /** How the map places this camera's vehicles (see vehicleLayout in PublicApp). */
   layout: "calibrated" | "view" | "road" | "hidden";
-  /** The nearest OSM road's name, when the vehicles are laid along it. */
-  roadName: string | null;
   onBack: () => void;
 }) {
   const { t, lang } = useLang();
   const id = lang === "id";
-  const road = roadName ?? (id ? "jalan terdekat" : "the nearest road");
   const counting = live?.kind === "ok" && live.data.camera_state === "live";
-  const refresh = live?.kind === "ok" ? live.data.refresh_s : undefined;
+  const busy = live?.kind === "ok" && live.data.problem?.startsWith("batas");
   return (
     <article className="camera-info" aria-labelledby="card-title">
       <CardHead title={camera.name} sub={t("camSource")} onBack={onBack} />
@@ -548,68 +544,27 @@ export function CameraInfo({
         {counting ? (
           <>
             <LiveCounts live={live} cameraId={camera.id} />
-            <p className="why-sentence">
-              {layout === "calibrated"
+            <p className="card-footnote">
+              {layout === "hidden"
                 ? id
-                  ? "Kendaraan 3D di peta ditempatkan dari kalibrasi kamera ini."
-                  : "The 3D vehicles on the map are placed from this camera's calibration."
-                : layout === "view"
-                  ? id
-                    ? "Kendaraan 3D di peta dibentangkan dari posisi kamera ke arah pandangnya. Kamera ini belum dikalibrasi, jadi letak tepatnya perkiraan; jumlahnya nyata."
-                    : "The 3D vehicles on the map are laid out from the camera toward where it looks. It is not calibrated yet, so the exact spots are estimates; the number is real."
-                  : layout === "road"
-                    ? id
-                      ? `Kendaraan 3D di peta ditaruh di sepanjang ${road}, jalan terdekat dari titik kamera. Kamera ini belum dikalibrasi, jadi letak tepatnya perkiraan; jumlahnya nyata.`
-                      : `The 3D vehicles on the map are laid along ${road}, the road nearest the camera. It is not calibrated yet, so the exact spots are estimates; the number is real.`
-                    : id
-                      ? "Kendaraan 3D tidak digambar untuk kamera ini: letak kameranya di peta provinsi belum diverifikasi dan tidak dekat jalan mana pun, jadi gambarnya bisa menyesatkan. Jumlah di atas tetap nyata."
-                      : "No 3D vehicles are drawn for this camera: its position on the provincial map is not verified and not near any road, so a drawing could mislead. The count above is still real."}
-            </p>
-            <p className="why-sentence">
-              {camera.position_checked
-                ? id
-                  ? "Posisi kamera ini sudah dicek tim di peta satelit."
-                  : "This camera's position was checked by the team on a satellite map."
-                : camera.position_estimated
-                  ? id
-                    ? "Posisi kamera ini diperkirakan dari peta jalan dan citra satelit (simpang yang cocok dengan gambarnya), belum dicek tim."
-                    : "This camera's position is estimated from the road map and satellite image (the junction that matches its picture), not checked by the team."
+                  ? "Diperbarui tiap beberapa detik dari kamera CCTV."
+                  : "Updated every few seconds from the CCTV camera."
                 : id
-                  ? "Posisi kamera ini dari peta CCTV provinsi dan belum dicek tim; bisa meleset puluhan meter."
-                  : "This camera's position comes from the provincial CCTV map and is not checked by the team; it can be tens of meters off."}
+                  ? "Diperbarui tiap beberapa detik dari kamera CCTV. Kendaraan di peta menunjukkan kira-kira letaknya."
+                  : "Updated every few seconds from the CCTV camera. The vehicles on the map show roughly where they are."}
             </p>
-            {refresh && (
-              <p className="why-sentence">
-                {id
-                  ? `Diperbarui sekitar setiap ${refresh} detik (AGA berjalan di server tanpa GPU).`
-                  : `Updated about every ${refresh} s (AGA runs on a server without a GPU).`}
-              </p>
-            )}
           </>
         ) : (
           <>
             <StateWord label="unknown" size="md" />
-            <p className="state-summary">{t("camTitle")}</p>
+            {live?.kind === "loading" || (live?.kind === "ok" && live.data.camera_state === "connecting") ? (
+              <p className="state-summary">{id ? "Membuka kamera…" : "Opening the camera…"}</p>
+            ) : busy ? (
+              <p className="state-summary">{id ? "Sedang sibuk. Coba lagi sebentar lagi." : "Busy right now. Try again shortly."}</p>
+            ) : (
+              <p className="state-summary">{id ? "Kamera ini sedang tidak menyala." : "This camera is off right now."}</p>
+            )}
             <p className="why-sentence">{t("camBody")}</p>
-            {(live === null || live.kind === "unavailable") && (
-              <p className="why-sentence">
-                {id ? "Kamera ini sedang tidak menyala, jadi AGA belum bisa menghitungnya." : "This camera is not streaming right now, so AGA cannot count it."}
-              </p>
-            )}
-            {(live?.kind === "loading" || (live?.kind === "ok" && live.data.camera_state === "connecting")) && (
-              <p className="why-sentence">{id ? "Menghubungkan ke kamera…" : "Connecting to the camera…"}</p>
-            )}
-            {live?.kind === "ok" && live.data.camera_state === "offline" && (
-              <p className="why-sentence">
-                {live.data.problem?.startsWith("batas")
-                  ? id
-                    ? "Batas analisis AGA untuk sementara tercapai. Coba lagi nanti."
-                    : "AGA's analysis limit is reached for now. Try again later."
-                  : id
-                    ? "Kamera ini sedang mati atau tidak mengirim gambar."
-                    : "This camera is off or sends no picture."}
-              </p>
-            )}
           </>
         )}
       </section>

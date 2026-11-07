@@ -72,7 +72,7 @@ class AssistantTest(unittest.TestCase):
         data = json.loads(tool_msg["content"])
         self.assertEqual(len(data["watched_junctions"]), len(CORRIDOR["junctions"]))
         self.assertIn("SYNTHETIC", data["source"])
-        self.assertIn("SYNTHETIC", api.calls[0][2]["messages"][0]["content"])  # the model is told
+        self.assertIn("sample data for testing, not real traffic", api.calls[0][2]["messages"][0]["content"])  # the model is told
 
     def test_rate_limit_tries_the_next_groq_model_first(self):
         # Groq's limits are per model, so another Groq model still has quota.

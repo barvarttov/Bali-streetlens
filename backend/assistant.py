@@ -432,7 +432,7 @@ def _system_prompt(lang: str, tools: Tools) -> str:
     names = ", ".join(j["name"] for j in tools.corridor.get("junctions", []))
     language = "English" if lang == "en" else "Bahasa Indonesia (santai tapi sopan, sapa dengan \"kamu\", tanpa tanda seru)"
     synthetic = (
-        "IMPORTANT: all traffic data is SYNTHETIC development data, not real traffic. Say so briefly in every answer that gives traffic facts (e.g. 'menurut data sintetis')."
+        "IMPORTANT: the junction traffic data is sample data for testing, not real traffic. Say so briefly, in plain words, in every answer that gives traffic facts (e.g. 'ini masih data contoh')."
         if tools.synthetic else ""
     )
     return f"""You are "Tanya lalu lintas", the assistant of Bali StreetLens, a public 3D map of Bali that watches a few junctions through provincial CCTV.
@@ -449,6 +449,7 @@ Rules:
 - Don't greet; answer straight away. If the start is unknown, ask where they start from, or suggest the RUTE button (it can use their location).
 - Keep answers short: at most 5 sentences or a short list. Write junction names exactly as the tools give them.
 - Off-topic questions: answer in one sentence that you only help with Bali traffic on this map.
+- The readers are the general public. Use everyday words only. Never use technical words such as sintetis/synthetic, model, AI, AGA, server, API, kalibrasi/calibration, data feed, snapshot or tool; say "data contoh", "kamera" and so on instead.
 {synthetic}"""
 
 
