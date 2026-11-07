@@ -87,9 +87,14 @@
    "id": "catus-pata",
    "name": "Catus Pata",
    "lnglat": [
+    115.403741,
+    -8.53556
+   ],
+   "lnglat_portal": [
     115.401152,
     -8.535314
    ],
+   "lnglat_note": "The portal lists this camera 285 m west of the statue, on a side road. The statue is at -8.535285, 115.403741 (clicked on Google Maps satellite). The camera sits on the south side of the junction looking north: about 28 m south of the statue. Approximate; replace with a surveyed position.",
    "analyzed": false
   },
   {
