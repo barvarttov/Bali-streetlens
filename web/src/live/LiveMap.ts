@@ -83,7 +83,9 @@ export class LiveMap {
       attributionControl: false,
     });
     this.map.on("error", (e) => {
-      if (!this.map.loaded()) onError(e.error?.message ?? "map error");
+      // A sea tile the CDN does not have answers 404: that square is simply blank, not an error.
+      const status = (e.error as { status?: number } | undefined)?.status;
+      if (!this.map.loaded() && status !== 404) onError(e.error?.message ?? "map error");
     });
 
     const dot = document.createElement("div");
