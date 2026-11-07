@@ -222,10 +222,15 @@
    "id": "depan-popies-2--sky-garden",
    "name": "Depan Popies 2 / Sky Garden",
    "lnglat": [
+    115.172441,
+    -8.717499
+   ],
+   "analyzed": false,
+   "lnglat_portal": [
     115.174464,
     -8.717571
    ],
-   "analyzed": false
+   "lnglat_note": "Camera position clicked on Google Maps satellite by the team (2026-11-07), about 220 m west of the portal value (Poppies Lane II). Viewing direction not located yet."
   },
   {
    "id": "depan-pura-goa-lawah",
