@@ -19,6 +19,9 @@
 | Noto Sans (map label glyphs) | SIL OFL 1.1 | From protomaps/basemaps-assets |
 | Phosphor Icons | MIT | |
 | three.js | MIT | 3D vehicles inside the map |
-| Camera list and locations | Bali Satu Data, Diskominfos Provinsi Bali | Portal states "All Rights Reserved"; permission to process and republish is not yet confirmed |
+| Camera list and locations | Bali Satu Data, Diskominfos Provinsi Bali | The competition rules state that these CCTV streams are public and need no separate permission (team statement, 2026-11-07). The portal page itself still says "All Rights Reserved". |
+| Live CCTV streams | Diskominfos Provinsi Bali (public HLS, `transcode.baliprov.go.id`) | Read live and analysed in memory only. No frame or video is stored or shown; the site publishes only anonymous 3D shapes, counts and temporary track ids. |
+| ONNX Runtime | MIT | Runs AGA on the hosted site without torch |
+| jsDelivr | Free public CDN | Serves the committed OpenStreetMap tiles (`data/tiles`) to the hosted site |
 
-Footage: record the source URL, the operator, the date recorded, and the written permission for every clip in `data/`.
+Footage: record the source URL, the operator and the date recorded for every clip in `data/`. Clips stay local and are not published.
