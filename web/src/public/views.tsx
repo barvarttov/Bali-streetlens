@@ -523,17 +523,22 @@ function WhyRules({ why, label }: { why: NonNullable<JunctionState["why"]>; labe
 export function CameraInfo({
   camera,
   live,
-  calibrated,
+  layout,
+  roadName,
   onBack,
 }: {
   camera: Camera;
   /** AGA on this camera, or null when it is not streaming right now (or AGA is unavailable). */
   live: CameraLiveStatus | null;
-  calibrated: boolean;
+  /** How the map places this camera's vehicles (see vehicleLayout in PublicApp). */
+  layout: "calibrated" | "view" | "road" | "hidden";
+  /** The nearest OSM road's name, when the vehicles are laid along it. */
+  roadName: string | null;
   onBack: () => void;
 }) {
   const { t, lang } = useLang();
   const id = lang === "id";
+  const road = roadName ?? (id ? "jalan terdekat" : "the nearest road");
   const counting = live?.kind === "ok" && live.data.camera_state === "live";
   const refresh = live?.kind === "ok" ? live.data.refresh_s : undefined;
   return (
@@ -544,13 +549,34 @@ export function CameraInfo({
           <>
             <LiveCounts live={live} cameraId={camera.id} />
             <p className="why-sentence">
-              {calibrated
+              {layout === "calibrated"
                 ? id
                   ? "Kendaraan 3D di peta ditempatkan dari kalibrasi kamera ini."
                   : "The 3D vehicles on the map are placed from this camera's calibration."
+                : layout === "view"
+                  ? id
+                    ? "Kendaraan 3D di peta dibentangkan dari posisi kamera ke arah pandangnya. Kamera ini belum dikalibrasi, jadi letak tepatnya perkiraan; jumlahnya nyata."
+                    : "The 3D vehicles on the map are laid out from the camera toward where it looks. It is not calibrated yet, so the exact spots are estimates; the number is real."
+                  : layout === "road"
+                    ? id
+                      ? `Kendaraan 3D di peta ditaruh di sepanjang ${road}, jalan terdekat dari titik kamera. Kamera ini belum dikalibrasi, jadi letak tepatnya perkiraan; jumlahnya nyata.`
+                      : `The 3D vehicles on the map are laid along ${road}, the road nearest the camera. It is not calibrated yet, so the exact spots are estimates; the number is real.`
+                    : id
+                      ? "Kendaraan 3D tidak digambar untuk kamera ini: letak kameranya di peta provinsi belum diverifikasi dan tidak dekat jalan mana pun, jadi gambarnya bisa menyesatkan. Jumlah di atas tetap nyata."
+                      : "No 3D vehicles are drawn for this camera: its position on the provincial map is not verified and not near any road, so a drawing could mislead. The count above is still real."}
+            </p>
+            <p className="why-sentence">
+              {camera.position_checked
+                ? id
+                  ? "Posisi kamera ini sudah dicek tim di peta satelit."
+                  : "This camera's position was checked by the team on a satellite map."
+                : camera.position_estimated
+                  ? id
+                    ? "Posisi kamera ini diperkirakan dari peta jalan dan citra satelit (simpang yang cocok dengan gambarnya), belum dicek tim."
+                    : "This camera's position is estimated from the road map and satellite image (the junction that matches its picture), not checked by the team."
                 : id
-                  ? "Kendaraan 3D di peta digambar di sekitar titik kamera. Kamera ini belum dikalibrasi, jadi jalur dan jaraknya hanya perkiraan; jumlahnya nyata."
-                  : "The 3D vehicles on the map are drawn around the camera. It is not calibrated yet, so lanes and distances are only a guess; the number is real."}
+                  ? "Posisi kamera ini dari peta CCTV provinsi dan belum dicek tim; bisa meleset puluhan meter."
+                  : "This camera's position comes from the provincial CCTV map and is not checked by the team; it can be tens of meters off."}
             </p>
             {refresh && (
               <p className="why-sentence">

@@ -87,15 +87,20 @@
    "id": "catus-pata",
    "name": "Catus Pata",
    "lnglat": [
-    115.403741,
-    -8.53556
+    115.4038334,
+    -8.5352323
    ],
    "lnglat_portal": [
     115.401152,
     -8.535314
    ],
-   "lnglat_note": "The portal lists this camera 285 m west of the statue, on a side road. The statue is at -8.535285, 115.403741 (clicked on Google Maps satellite). The camera sits on the south side of the junction looking north: about 28 m south of the statue. Approximate; replace with a surveyed position.",
-   "analyzed": false
+   "lnglat_note": "Camera position clicked on Google Maps satellite by the team (2026-11-07): the north-east corner of the junction, about 12 m from the statue, looking south-west at it (the frame shows the statue on the right and Kertha Gosa behind it). look_at is the statue (-8.535285, 115.403741). The portal lists the camera 285 m west, on a side road. Not a calibration: the 3D vehicles are laid out in the camera's viewing direction as an estimate.",
+   "analyzed": false,
+   "look_at": [
+    115.403741,
+    -8.535285
+   ],
+   "position_checked": true
   },
   {
    "id": "cctv-bale-bengong",
@@ -218,10 +223,16 @@
    "id": "depan-popies-2--sky-garden",
    "name": "Depan Popies 2 / Sky Garden",
    "lnglat": [
+    115.172441,
+    -8.717499
+   ],
+   "analyzed": false,
+   "lnglat_portal": [
     115.174464,
     -8.717571
    ],
-   "analyzed": false
+   "lnglat_note": "Camera position clicked on Google Maps satellite by the team (2026-11-07), about 220 m west of the portal value (Poppies Lane II). Viewing direction not located yet.",
+   "position_checked": true
   },
   {
    "id": "depan-pura-goa-lawah",
@@ -236,10 +247,20 @@
    "id": "jalan-seminyak-depan-swalayan-bintanggg-keraton",
    "name": "Jalan Seminyak Depan Swalayan Bintang/Gg Keraton",
    "lnglat": [
+    115.1681608,
+    -8.6940209
+   ],
+   "analyzed": false,
+   "lnglat_portal": [
     115.163917,
     -8.693063
    ],
-   "analyzed": false
+   "lnglat_note": "Camera position clicked on Google Maps satellite by the team (2026-11-07), at the mouth of the lane on the east side of Jl. Raya Seminyak, about 470 m from the portal value (which lies on a house roof). look_at is the road about 20 m north, estimated from the frame (shops on the left, a Balinese gate on the right, the road running away ahead). Not a calibration.",
+   "look_at": [
+    115.1681335,
+    -8.69384
+   ],
+   "position_checked": true
   },
   {
    "id": "jl-arjuna-parkiran-pantai-doublesix",
@@ -290,10 +311,16 @@
    "id": "monumen-ground-zeropojok-panin",
    "name": "Monumen Ground Zero/Pojok Panin",
    "lnglat": [
+    115.17433,
+    -8.7175723
+   ],
+   "analyzed": false,
+   "lnglat_portal": [
     115.174562,
     -8.717386
    ],
-   "analyzed": false
+   "lnglat_note": "Camera position clicked on Google Maps satellite by the team (2026-11-07), about 30 m from the portal value. Viewing direction not located yet.",
+   "position_checked": true
   },
   {
    "id": "pantai-jerman-co1-cctv1",
@@ -659,10 +686,16 @@
    "id": "simpang-lima",
    "name": "Simpang Lima",
    "lnglat": [
+    115.397435,
+    -8.534346
+   ],
+   "analyzed": false,
+   "lnglat_portal": [
     115.394877,
     -8.534306
    ],
-   "analyzed": false
+   "lnglat_note": "Estimated, not checked by the team: the only five-way junction within 1.2 km of the portal value (282 m east of it) in the OSM road graph. The satellite image shows a round statue island and a curved white-railed corner, as in the frame. The point is the junction, not the camera itself.",
+   "position_estimated": true
   },
   {
    "id": "simpang-padang-galak",
@@ -758,10 +791,20 @@
    "id": "taman-bencingah-mengwi-co1-cctv1",
    "name": "Taman Bencingah Mengwi-CO1 CCTV1",
    "lnglat": [
+    115.1702438,
+    -8.5440411
+   ],
+   "analyzed": false,
+   "lnglat_portal": [
     115.167648,
     -8.544059
    ],
-   "analyzed": false
+   "lnglat_note": "Camera position clicked on Google Maps satellite by the team (2026-11-07), about 285 m east of the portal value, at the tip of the curved garden on the south-east corner of the junction. look_at is the middle of the paved junction (about 13 m west, 17 m north of the camera), estimated from the satellite image and the frame (curved planted curb on the right, the road running away ahead). Not a calibration.",
+   "look_at": [
+    115.1701257,
+    -8.5438873
+   ],
+   "position_checked": true
   },
   {
    "id": "taman-kota",

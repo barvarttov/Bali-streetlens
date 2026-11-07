@@ -28,7 +28,7 @@ from pydantic import BaseModel, Field
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from backend import aga_live, assistant, live
-from backend.routing import RouteError, Router
+from backend.routing import RouteError, Router, road_near
 from backend.tilecache import RemoteTiles, store
 
 SCHEMA_VERSION = 1
@@ -52,7 +52,7 @@ async def tunnel_guard(request: Request, call_next):
     host = request.headers.get("host", "")
     if host.endswith(".trycloudflare.com") or "cf-connecting-ip" in request.headers:
         path = request.url.path
-        ok = path.startswith("/api/live/") or (path.startswith("/api/cameras/") and path.endswith("/config"))
+        ok = path.startswith("/api/live/") or (path.startswith("/api/cameras/") and path.endswith(("/config", "/road")))
         if not ok and request.method != "OPTIONS":
             return Response(status_code=404)
     return await call_next(request)
@@ -332,6 +332,28 @@ def _lnglat(value: str, what: str) -> tuple[float, float]:
     if not (_BALI_BOX[0] <= lng <= _BALI_BOX[2] and _BALI_BOX[1] <= lat <= _BALI_BOX[3]):
         raise HTTPException(422, {"code": "outside_bali", "message": "Titik ini di luar Bali."})
     return lng, lat
+
+
+_camera_roads: dict[str, dict[str, Any] | None] = {}
+
+
+@app.get("/api/cameras/{camera_id}/road")
+def camera_road(camera_id: str) -> dict[str, Any]:
+    """The OSM road nearest to a provincial camera, so the map can lay an uncalibrated camera's vehicles along a
+    road instead of in a guessed box. An estimate (the portal's camera positions are often tens of meters off)."""
+    if camera_id not in _camera_roads:
+        path = CONFIG_DIR / "cameras.json"
+        cams = {c["id"]: c for c in json.loads(path.read_text(encoding="utf-8"))["cameras"]} if path.is_file() else {}
+        cam = cams.get(camera_id)
+        if cam is None:
+            raise HTTPException(404, f"Unknown camera: {camera_id}")
+        if not _router.available:
+            raise HTTPException(503, "config/roads.json.gz is missing")
+        _camera_roads[camera_id] = road_near(_router.graph(), *cam["lnglat"])
+    road = _camera_roads[camera_id]
+    if road is None:
+        raise HTTPException(404, "No road within 150 m of this camera")
+    return {"camera_id": camera_id, **road}
 
 
 @app.get("/api/route")

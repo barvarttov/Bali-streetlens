@@ -3,6 +3,9 @@ import { normalizeConfig } from "../lib/config.ts";
 import { calibrate, imageToWorld } from "../lib/homography.ts";
 import type { Calibration } from "../lib/homography.ts";
 import { fromLocalMeters } from "../lib/geo.ts";
+import { alongRoad, roadFrame, viewFrame } from "../lib/roadPlacement.ts";
+import type { CameraRoad } from "../lib/roadPlacement.ts";
+export type { CameraRoad } from "../lib/roadPlacement.ts";
 import type { LngLat } from "../lib/geo.ts";
 import type { VehicleClass } from "../lib/schema.ts";
 import { liveApi, pageVisible, pollDelay } from "./api.ts";
@@ -148,24 +151,63 @@ export function useCameraPlacement(cameraId: string | null): Placement | null {
   return placement;
 }
 
-// Without a calibration the position is a rough guess: the camera is assumed to look north at a road 30 m
-// wide and 40 m deep, and the vehicles are drawn faded and enlarged so nobody takes them for measured.
+/** The road an uncalibrated camera's vehicles are laid along; null while loading or when none is near. */
+export function useCameraRoad(cameraId: string | null): CameraRoad | null {
+  const [road, setRoad] = useState<CameraRoad | null>(null);
+  useEffect(() => {
+    setRoad(null);
+    if (!cameraId) return;
+    let cancelled = false;
+    call<CameraRoad>(`/api/cameras/${encodeURIComponent(cameraId)}/road`)
+      .then((r) => {
+        if (!cancelled && Array.isArray(r.line) && r.line.length >= 2) setRoad(r);
+      })
+      .catch(() => undefined); // no road within 150 m (a beach camera): the sketch box is used
+    return () => {
+      cancelled = true;
+    };
+  }, [cameraId]);
+  return road;
+}
+
+// Without a calibration the position is an estimate. With a nearby road, the picture is laid along it: the
+// bottom of the frame is next to the camera, the top is far along the road, left and right are the two sides
+// of the road. Without one, the camera is assumed to look north at a 30 m x 40 m box.
 const SKETCH_WIDTH_M = 30;
 const SKETCH_DEPTH_M = 40;
 const SKETCH_NEAR_M = 6;
+const ROAD_NEAR_M = 4;
+const ROAD_FAR_M = 55;
 
-export function placeVehicles(o: CameraLive, cameraLngLat: LngLat, placement: Placement | null): MapVehicle[] {
+export function placeVehicles(
+  o: CameraLive,
+  cameraLngLat: LngLat,
+  placement: Placement | null,
+  road: CameraRoad | null = null,
+  lookAt: LngLat | null = null,
+): MapVehicle[] {
   const size = o.frame_size;
   if (!size || !o.objects) return [];
-  return o.objects.map((v) => {
-    const w = placement ? imageToWorld(placement.cal, v.ground_px) : null;
-    const lnglat: LngLat =
-      placement && w
-        ? fromLocalMeters(placement.origin, w)
-        : fromLocalMeters(cameraLngLat, [
-            (v.ground_px[0] / size[0] - 0.5) * SKETCH_WIDTH_M,
-            SKETCH_NEAR_M + (1 - v.ground_px[1] / size[1]) * SKETCH_DEPTH_M,
-          ]);
-    return { id: v.track_id, cls: v.cls, lnglat };
+  // A known viewing direction (camera position + the point in the middle of its picture) beats the nearest road.
+  const frame = placement ? null : lookAt ? viewFrame(cameraLngLat, lookAt) : road ? roadFrame(road) : null;
+  return o.objects.flatMap((v): MapVehicle[] => {
+    if (placement) {
+      const w = imageToWorld(placement.cal, v.ground_px);
+      // Above the horizon or absurdly far: no place on the road, so not drawn (the count still has it).
+      if (!w || Math.hypot(w[0], w[1]) > 150) return [];
+      return [{ id: v.track_id, cls: v.cls, lnglat: fromLocalMeters(placement.origin, w) }];
+    }
+    const across = Math.max(0, Math.min(1, v.ground_px[0] / size[0]));
+    const up = Math.max(0, Math.min(1, 1 - v.ground_px[1] / size[1]));
+    if (frame) {
+      // Ground distance grows faster toward the top of a tilted camera's picture.
+      const far = Math.min(ROAD_FAR_M, frame.cum[frame.cum.length - 1]);
+      const s = ROAD_NEAR_M + (far - ROAD_NEAR_M) * Math.pow(up, 1.6);
+      const half = Math.max(1, frame.width / 2 - 0.8);
+      const p = alongRoad(frame, s, Math.max(-half, Math.min(half, (across - 0.5) * frame.width)));
+      return [{ id: v.track_id, cls: v.cls, lnglat: p.lnglat, heading: p.heading }];
+    }
+    const lnglat = fromLocalMeters(cameraLngLat, [(across - 0.5) * SKETCH_WIDTH_M, SKETCH_NEAR_M + up * SKETCH_DEPTH_M]);
+    return [{ id: v.track_id, cls: v.cls, lnglat }];
   });
 }

@@ -39,6 +39,12 @@ export interface Camera {
   name: string;
   lnglat: LngLat;
   analyzed: boolean;
+  /** The point in the middle of the camera's picture, when the team has located it (config/cameras.json). */
+  look_at?: LngLat;
+  /** The team checked this camera's position on a satellite map (the portal's are often far off). */
+  position_checked?: boolean;
+  /** Moved from the portal's position to the junction it shows, from the road map and satellite; not checked. */
+  position_estimated?: boolean;
 }
 
 export type TrafficLabel = "lancar" | "padat" | "macet" | "unknown";
