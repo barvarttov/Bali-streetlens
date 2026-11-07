@@ -14,6 +14,7 @@ import { FIRST_LABEL_LAYER, MAP_FONT, mapStyle, pxPerMeter } from "./mapStyle.ts
 import { JunctionMarker } from "./JunctionMarker.tsx";
 import { StateMark } from "./parts.tsx";
 import type { VehicleLayer } from "./VehicleLayer.ts";
+import type { LiveVehicleLayer, MapVehicle } from "../live/LiveVehicleLayer.ts";
 import { formatDistance, labelPoint } from "./route.ts";
 import type { RouteResult } from "./route.ts";
 import { ROUTE_LETTERS } from "./RouteView.tsx";
@@ -48,6 +49,36 @@ export interface MapViewProps {
   route: RouteResult | null;
   selectedRoute: number;
   onSelectRoute: (index: number) => void;
+  /** Provincial cameras that stream right now (always shown); null until the server answers. */
+  liveCameraIds: Set<string> | null;
+  /** The open camera card, if any: the map flies to it and rings it. */
+  selectedCameraId: string | null;
+  /** AGA's vehicles around the open camera, drawn in 3D on this map. */
+  liveVehicles: LiveVehicles | null;
+}
+
+export interface LiveVehicles {
+  cameraId: string;
+  center: LngLat;
+  vehicles: MapVehicle[];
+  approximate: boolean;
+}
+
+/** Close enough that AGA's vehicles around a camera read in 3D. */
+export const CAMERA_ZOOM = 18.3;
+
+/** The provincial cameras (not the analysed corridor ones), with live = 1 when they stream right now. */
+function cameraFeatures(cameras: Camera[], liveIds: Set<string> | null): FeatureCollection {
+  return {
+    type: "FeatureCollection",
+    features: cameras
+      .filter((cam) => !cam.analyzed)
+      .map((cam) => ({
+        type: "Feature" as const,
+        properties: { id: cam.id, name: cam.name, live: liveIds?.has(cam.id) ? 1 : 0 },
+        geometry: { type: "Point" as const, coordinates: cam.lnglat },
+      })),
+  };
 }
 
 export const JUNCTION_ZOOM = 18; // the 160 m arms fill a phone screen and the 3D vehicles read
@@ -348,19 +379,13 @@ export function MapView(props: MapViewProps) {
         paint: { "icon-opacity": 0 },
       });
 
-      map.addSource("cameras", {
-        type: "geojson",
-        data: {
-          type: "FeatureCollection",
-          features: cameras
-            .filter((cam) => !cam.analyzed)
-            .map((cam) => ({ type: "Feature", properties: { id: cam.id, name: cam.name }, geometry: { type: "Point", coordinates: cam.lnglat } })),
-        },
-      });
+      map.addSource("cameras", { type: "geojson", data: cameraFeatures(cameras, callbacks.current.liveCameraIds) });
+      // Cameras that stream right now are always on the map, filled; the rest only with "Kamera provinsi".
       map.addLayer({
         id: "cameras",
         type: "circle",
         source: "cameras",
+        filter: ["!=", ["get", "live"], 1],
         layout: { visibility: "none" },
         paint: {
           "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 3, 15, 6],
@@ -369,12 +394,38 @@ export function MapView(props: MapViewProps) {
           "circle-stroke-width": 1.5,
         },
       });
-      map.on("click", "cameras", (e) => {
-        const id = e.features?.[0]?.properties?.id;
-        if (typeof id === "string") callbacks.current.onSelectCamera(id);
+      map.addLayer({
+        id: "camera-selected",
+        type: "circle",
+        source: "cameras",
+        filter: ["==", ["get", "id"], ""],
+        paint: {
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 9, 15, 13, 18, 16],
+          "circle-color": "rgba(0,0,0,0)",
+          "circle-stroke-color": c.cameraLive,
+          "circle-stroke-width": 2.5,
+        },
       });
-      map.on("mouseenter", "cameras", () => (map.getCanvas().style.cursor = "pointer"));
-      map.on("mouseleave", "cameras", () => (map.getCanvas().style.cursor = ""));
+      map.addLayer({
+        id: "cameras-live",
+        type: "circle",
+        source: "cameras",
+        filter: ["==", ["get", "live"], 1],
+        paint: {
+          "circle-radius": ["interpolate", ["linear"], ["zoom"], 9, 4.5, 15, 7.5],
+          "circle-color": c.cameraLive,
+          "circle-stroke-color": c.cameraLiveStroke,
+          "circle-stroke-width": 2,
+        },
+      });
+      for (const layer of ["cameras", "cameras-live"]) {
+        map.on("click", layer, (e) => {
+          const id = e.features?.[0]?.properties?.id;
+          if (typeof id === "string") callbacks.current.onSelectCamera(id);
+        });
+        map.on("mouseenter", layer, () => (map.getCanvas().style.cursor = "pointer"));
+        map.on("mouseleave", layer, () => (map.getCanvas().style.cursor = ""));
+      }
 
       // Junction marks are real buttons (focusable, labelled), rendered by React through portals.
       const els = new Map<string, HTMLElement>();
@@ -577,6 +628,71 @@ export function MapView(props: MapViewProps) {
     if (!map || !ready) return;
     map.setLayoutProperty("cameras", "visibility", showAllCameras ? "visible" : "none");
   }, [showAllCameras, ready]);
+
+  // Which provincial cameras stream right now.
+  const { liveCameraIds, selectedCameraId, liveVehicles } = props;
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    (map.getSource("cameras") as GeoJSONSource).setData(cameraFeatures(cameras, liveCameraIds));
+  }, [cameras, liveCameraIds, ready]);
+
+  // An opened camera: ring it and fly close enough for its vehicles to read in 3D.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready) return;
+    map.setFilter("camera-selected", ["==", ["get", "id"], selectedCameraId ?? ""]);
+    const cam = cameras.find((x) => x.id === selectedCameraId);
+    if (!cam) return;
+    map.flyTo({
+      center: cam.lnglat,
+      zoom: CAMERA_ZOOM,
+      pitch: callbacks.current.mode3d ? 58 : 0,
+      bearing: 0,
+      duration: prefersReducedMotion() ? 0 : 1100,
+      padding: callbacks.current.insets,
+      essential: true,
+    });
+  }, [selectedCameraId, cameras, ready]);
+
+  // AGA's vehicles: one Three.js layer around the open camera, replaced when another camera opens.
+  const liveLayer = useRef<{ cameraId: string; layer: LiveVehicleLayer } | null>(null);
+  const liveCameraId = liveVehicles?.cameraId ?? null;
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !ready || !liveCameraId) return;
+    let cancelled = false;
+    const center = liveVehicles!.center;
+    import("../live/LiveVehicleLayer.ts")
+      .then(({ createLiveVehicleLayer }) => {
+        if (cancelled || mapRef.current !== map) return;
+        const layer = createLiveVehicleLayer(center);
+        map.addLayer(layer.layer, FIRST_LABEL_LAYER);
+        liveLayer.current = { cameraId: liveCameraId, layer };
+        const now = callbacks.current.liveVehicles;
+        if (now?.cameraId === liveCameraId) {
+          layer.setApproximate(now.approximate);
+          layer.setVehicles(now.vehicles);
+        }
+      })
+      .catch((err) => {
+        if (import.meta.env.DEV) console.warn("live 3D vehicles unavailable", err);
+      });
+    return () => {
+      cancelled = true;
+      const current = liveLayer.current;
+      liveLayer.current = null;
+      if (current && mapRef.current === map && map.getLayer(current.layer.layer.id)) map.removeLayer(current.layer.layer.id);
+    };
+    // the layer is rebuilt only when another camera opens; vehicles are fed by the effect below
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [liveCameraId, ready]);
+  useEffect(() => {
+    const current = liveLayer.current;
+    if (!current || !liveVehicles || current.cameraId !== liveVehicles.cameraId) return;
+    current.layer.setApproximate(liveVehicles.approximate);
+    current.layer.setVehicles(liveVehicles.vehicles);
+  }, [liveVehicles]);
 
   // Routes, their labels ("A · 8,4 km") and the two ends.
   const { route, selectedRoute } = props;

@@ -11,7 +11,8 @@ import { formatClock } from "./format.ts";
 import { MapControls } from "./MapControls.tsx";
 import { MapFrame, MapKey, ScaleBar } from "./MapFrame.tsx";
 import { BALI_LAND, MapView, corridorBounds, corridorCenter, prefersReducedMotion } from "./MapView.tsx";
-import type { Insets } from "./MapView.tsx";
+import type { Insets, LiveVehicles } from "./MapView.tsx";
+import { placeVehicles, useCameraLive, useCameraPlacement, useLiveCameraList } from "../live/useCameraLive.ts";
 import { distanceKm, loadPlaces } from "./places.ts";
 import type { Place } from "./places.ts";
 import { routeBounds, useRoutes } from "./route.ts";
@@ -87,6 +88,27 @@ export function PublicApp() {
   const cameraMatch = matchPath("/kamera/:id", path);
   const junction = corridor?.junctions.find((j) => j.id === junctionMatch?.id) ?? null;
   const camera = data?.cameras.find((c) => c.id === cameraMatch?.id) ?? null;
+
+  // Provincial cameras that stream right now are always on the map; opening one runs AGA on it, the card
+  // shows the counts and the map draws its vehicles in 3D around the camera. Cameras known to be off are
+  // never asked (AGA would only fail on them).
+  const liveList = useLiveCameraList();
+  const liveCameras = useMemo(
+    () => (data && liveList.ids ? data.cameras.filter((c) => !c.analyzed && liveList.ids!.has(c.id)) : []),
+    [data, liveList.ids],
+  );
+  const watchedCameraId = camera && liveList.modelReady && liveList.ids?.has(camera.id) ? camera.id : null;
+  const cameraLive = useCameraLive(watchedCameraId);
+  const placement = useCameraPlacement(watchedCameraId);
+  const liveVehicles = useMemo<LiveVehicles | null>(() => {
+    if (!camera || !watchedCameraId || cameraLive.kind !== "ok") return null;
+    return {
+      cameraId: camera.id,
+      center: camera.lnglat,
+      vehicles: placeVehicles(cameraLive.data, camera.lnglat, placement),
+      approximate: !placement,
+    };
+  }, [camera, watchedCameraId, cameraLive, placement]);
 
   // Unknown junction or camera in the URL: back to the island rather than a blank card.
   useEffect(() => {
@@ -166,6 +188,10 @@ export function PublicApp() {
     cameFromRoute.current = routeMode;
     setDetent("half");
     navigate(`/simpang/${id}`);
+  };
+  const openCamera = (id: string) => {
+    setDetent("half");
+    navigate(`/kamera/${id}`);
   };
   const backToArea = () => {
     if (cameFromRoute.current) {
@@ -319,7 +345,14 @@ export function PublicApp() {
       />
     );
   } else if (camera) {
-    content = <CameraInfo camera={camera} onBack={() => (area ? navigate("/") : closeCard())} />;
+    content = (
+      <CameraInfo
+        camera={camera}
+        live={watchedCameraId ? cameraLive : null}
+        calibrated={!!placement}
+        onBack={() => (area ? navigate("/") : closeCard())}
+      />
+    );
   } else if (corridor && data && area) {
     content = (
       <AreaView
@@ -370,7 +403,17 @@ export function PublicApp() {
             onClose={closeRoute}
           />
         ) : (
-          corridor && <SearchBar corridor={corridor} states={states} onPickJunction={select} onPickPlace={pickPlace} onRoute={() => startRoute(null)} />
+          corridor && (
+            <SearchBar
+              corridor={corridor}
+              states={states}
+              liveCameras={liveCameras}
+              onPickJunction={select}
+              onPickCamera={openCamera}
+              onPickPlace={pickPlace}
+              onRoute={() => startRoute(null)}
+            />
+          )
         )}
       </div>
 
@@ -380,7 +423,7 @@ export function PublicApp() {
           onDetent={setDetent}
           onVisibleHeight={setSheetInset}
           topReserve={topReserve}
-          label={routeMode ? t("routeTitle") : (junction?.name ?? area?.name ?? "")}
+          label={routeMode ? t("routeTitle") : (junction?.name ?? camera?.name ?? area?.name ?? "")}
         >
           {content}
         </Sheet>
@@ -420,7 +463,7 @@ export function PublicApp() {
           )}
         </div>
         <div className="map-foot" style={sheetCovers ? { bottom: sheetInset + 12 } : undefined}>
-          <MapKey showCameras={allCameras} onToggleCameras={() => setAllCameras((v) => !v)} />
+          <MapKey showCameras={allCameras} onToggleCameras={() => setAllCameras((v) => !v)} liveCount={liveList.ids ? liveCameras.length : null} />
           <ScaleBar map={map} />
         </div>
       </div>
@@ -439,15 +482,15 @@ export function PublicApp() {
             insets={insets}
             onSelect={select}
             onSelectCorridor={showCorridor}
-            onSelectCamera={(id) => {
-              setDetent("half");
-              navigate(`/kamera/${id}`);
-            }}
+            onSelectCamera={openCamera}
             onMap={setMap}
             onError={setMapError}
             route={routeOnMap}
             selectedRoute={selectedRoute}
             onSelectRoute={setSelectedRoute}
+            liveCameraIds={liveList.ids}
+            selectedCameraId={camera?.id ?? null}
+            liveVehicles={liveVehicles}
           />
         )}
         <MapFrame map={map} />

@@ -172,7 +172,9 @@ Dipilih pengguna lewat halaman pilihan arah (2026-11-03, setelah satu kali undi 
 /simpang/<id>              Simpang: tampilan langsung satu simpang       (publik, bisa dibagikan)
 /simpang/<id>/kenapa       Kenapa: alasan di balik label                 (publik)
 /rute                      Rute: dari A ke B, sampai 3 pilihan            (publik)
-/kamera/<id>               Kamera yang belum dianalisis                   (publik)
+/kamera/<id>               Kamera provinsi: kalau sedang menyala, hitungan AGA di kartu
+                           dan kendaraannya digambar 3D di peta utama     (publik, bisa dibagikan)
+/langsung[/<id>]           Alamat lama, dialihkan ke / atau /kamera/<id>
 /tim                       Alat tim: pemutar analisis, penghitung manual, kalibrasi
 ```
 

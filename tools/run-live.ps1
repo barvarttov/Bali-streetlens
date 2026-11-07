@@ -38,7 +38,7 @@ for ($i = 0; $i -lt 40 -and -not $url; $i++) {
   if (Test-Path $tlog) { $m = Select-String -Path $tlog -Pattern "https://[a-z0-9-]+\.trycloudflare\.com" | Select-Object -First 1; if ($m) { $url = $m.Matches[0].Value } }
 }
 if (-not $url) { throw "No tunnel address found in $tlog" }
-$share = "https://bali-streetlens.vercel.app/langsung?api=$url"
+$share = "https://bali-streetlens.vercel.app/?api=$url"
 Set-Content -Path (Join-Path $logs "share-link.txt") -Value $share
 Write-Host ""
 Write-Host "Public link (open it once in each browser; it is remembered there):"
