@@ -16,7 +16,7 @@ import type { CustomLayerInterface } from "maplibre-gl";
 import workerUrl from "maplibre-gl/dist/maplibre-gl-worker.mjs?url";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { LngLat } from "../lib/geo.ts";
-import { COLORS, hex } from "../lib/palette.ts";
+import { COLORS, hex, vehicleColor } from "../lib/palette.ts";
 import { shapeGeometry, SHAPES } from "../lib/traffic3d/shapes.ts";
 import { localFrame, toLocal } from "../lib/traffic3d/lanes.ts";
 import type { VehicleClass } from "../lib/schema.ts";
@@ -25,7 +25,8 @@ import { mapStyle } from "../public/mapStyle.ts";
 // The live camera on the team's own 3D map (OSM roads and extruded buildings): AGA's vehicles are drawn as
 // Three.js meshes inside the map's WebGL context, so they hide behind buildings like real ones.
 // Positions arrive as longitude/latitude. Whether they are measured (a calibrated camera) or a rough guess is
-// decided by the caller; `setApproximate` only changes how they are drawn (faded and enlarged, never solid).
+// decided by the caller and said in words on the page. The look is the main map's: graphite, true size, solid,
+// the class told apart by shape only (lib/palette.ts vehicleColor).
 
 setWorkerUrl(workerUrl);
 
@@ -35,14 +36,8 @@ export interface MapVehicle {
   lnglat: LngLat;
 }
 
-const CLASS_COLOR: Record<VehicleClass, number> = {
-  motorcycle: 0x606c38,
-  car: 0x3d5a80,
-  bus: 0xb7791f,
-  truck: 0x8c3a3a,
-};
+const VEHICLE_COLOR = vehicleColor(false, "unknown", false);
 const MAX_PER_CLASS = 200;
-const APPROX_SCALE = 2.5;
 const LAYER_ID = "live-vehicles";
 
 interface Entry {
@@ -65,7 +60,6 @@ export class LiveMap {
   private readonly map: MlMap;
   private readonly entries = new Map<number, Entry>();
   private readonly frame;
-  private approximate = true;
   private disposed = false;
   private readonly pin: Marker;
   private repaint: () => void = () => undefined;
@@ -76,7 +70,7 @@ export class LiveMap {
       container: host,
       style: mapStyle(window.location.origin),
       center,
-      zoom: 18.6,
+      zoom: 19.2,
       pitch: 58,
       bearing: 0,
       maxPitch: 70,
@@ -96,12 +90,6 @@ export class LiveMap {
     this.map.on("load", () => {
       if (!this.disposed) this.map.addLayer(this.buildLayer());
     });
-  }
-
-  /** Faded, enlarged vehicles for a camera without calibration; true size and solid when calibrated. */
-  setApproximate(approximate: boolean): void {
-    this.approximate = approximate;
-    this.repaint();
   }
 
   setVehicles(vehicles: readonly MapVehicle[]): void {
@@ -186,7 +174,6 @@ export class LiveMap {
         if (!renderer) return;
         const counts: Record<VehicleClass, number> = { motorcycle: 0, car: 0, bus: 0, truck: 0 };
         let moving = false;
-        const k = this.approximate ? APPROX_SCALE : 1;
         for (const e of this.entries.values()) {
           // Glide to the newest position instead of jumping.
           e.x += (e.tx - e.x) * 0.2;
@@ -195,11 +182,9 @@ export class LiveMap {
           const i = counts[e.cls]++;
           if (i >= MAX_PER_CLASS) continue;
           q.setFromAxisAngle(up, e.heading);
-          meshes[e.cls].setMatrixAt(i, m.compose(pos.set(e.x, 0, e.z), q, scale.set(k, k, k)));
-          meshes[e.cls].setColorAt(i, color.setHex(CLASS_COLOR[e.cls]));
+          meshes[e.cls].setMatrixAt(i, m.compose(pos.set(e.x, 0, e.z), q, scale.set(1, 1, 1)));
+          meshes[e.cls].setColorAt(i, color.setHex(VEHICLE_COLOR));
         }
-        material.transparent = this.approximate;
-        material.opacity = this.approximate ? 0.6 : 1;
         for (const cls of Object.keys(meshes) as VehicleClass[]) {
           const mesh = meshes[cls];
           mesh.count = Math.min(counts[cls], MAX_PER_CLASS);

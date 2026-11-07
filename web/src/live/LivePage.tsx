@@ -215,10 +215,6 @@ function Viewer({ camera, model }: { camera: LiveCamera; model: string }) {
     };
   }, [camera.lnglat]);
 
-  useEffect(() => {
-    mapRef.current?.setApproximate(!placement);
-  }, [placement]);
-
   // Keep the server analysing this camera while the page is open, and poll the result.
   useEffect(() => {
     let closed = false;
@@ -290,7 +286,7 @@ function Viewer({ camera, model }: { camera: LiveCamera; model: string }) {
       <p className={`live-note${placement ? "" : " is-warn"}`}>
         {placement
           ? "Posisi kendaraan dihitung dari kalibrasi kamera ini."
-          : "Kamera ini belum dikalibrasi. Kendaraan digambar samar dan diperbesar di sekitar titik kamera, dengan perkiraan kasar (kamera dianggap menghadap utara): jalur dan jarak belum tepat."}
+          : "Kamera ini belum dikalibrasi. Banyaknya kendaraan nyata (hitungan AGA), tetapi letaknya di peta masih perkiraan kasar di sekitar titik kamera (kamera dianggap menghadap utara): jalur dan jarak belum tepat."}
       </p>
       <p className="live-note">
         Model: {obs?.model ?? model}, dilatih dari nol. Skor uji 0,47 mAP50 pada 84 bingkai CCTV; paling lemah saat hujan dan malam,
