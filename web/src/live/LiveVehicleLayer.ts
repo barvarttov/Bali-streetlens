@@ -27,6 +27,8 @@ export interface MapVehicle {
   id: number;
   cls: VehicleClass;
   lnglat: LngLat;
+  /** Facing in radians as atan2(north, east), e.g. along the road; otherwise taken from the movement. */
+  heading?: number;
 }
 
 export interface LiveVehicleLayer {
@@ -146,13 +148,14 @@ export function createLiveVehicleLayer(center: LngLat): LiveVehicleLayer {
         seen.add(v.id);
         const e = entries.get(v.id);
         if (!e) {
-          entries.set(v.id, { cls: v.cls, x, z, tx: x, tz: z, heading: 0 });
+          entries.set(v.id, { cls: v.cls, x, z, tx: x, tz: z, heading: v.heading ?? 0 });
           continue;
         }
         e.cls = v.cls;
         const dx = x - e.tx;
         const dz = z - e.tz;
-        if (Math.hypot(dx, dz) > 0.6) e.heading = angleToward(e.heading, Math.atan2(-dz, dx), 0.5);
+        if (v.heading !== undefined) e.heading = angleToward(e.heading, v.heading, 0.5);
+        else if (Math.hypot(dx, dz) > 0.6) e.heading = angleToward(e.heading, Math.atan2(-dz, dx), 0.5);
         e.tx = x;
         e.tz = z;
       }

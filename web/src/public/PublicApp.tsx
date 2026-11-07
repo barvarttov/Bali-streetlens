@@ -12,7 +12,7 @@ import { MapControls } from "./MapControls.tsx";
 import { MapFrame, MapKey, ScaleBar } from "./MapFrame.tsx";
 import { BALI_LAND, MapView, corridorBounds, corridorCenter, prefersReducedMotion } from "./MapView.tsx";
 import type { Insets, LiveVehicles } from "./MapView.tsx";
-import { placeVehicles, useCameraLive, useCameraPlacement, useLiveCameraList } from "../live/useCameraLive.ts";
+import { placeVehicles, useCameraLive, useCameraPlacement, useCameraRoad, useLiveCameraList } from "../live/useCameraLive.ts";
 import { distanceKm, loadPlaces } from "./places.ts";
 import type { Place } from "./places.ts";
 import { routeBounds, useRoutes } from "./route.ts";
@@ -100,14 +100,15 @@ export function PublicApp() {
   const watchedCameraId = camera && liveList.modelReady && liveList.ids?.has(camera.id) ? camera.id : null;
   const cameraLive = useCameraLive(watchedCameraId);
   const placement = useCameraPlacement(watchedCameraId);
+  const road = useCameraRoad(watchedCameraId);
   const liveVehicles = useMemo<LiveVehicles | null>(() => {
     if (!camera || !watchedCameraId || cameraLive.kind !== "ok") return null;
     return {
       cameraId: camera.id,
       center: camera.lnglat,
-      vehicles: placeVehicles(cameraLive.data, camera.lnglat, placement),
+      vehicles: placeVehicles(cameraLive.data, camera.lnglat, placement, road),
     };
-  }, [camera, watchedCameraId, cameraLive, placement]);
+  }, [camera, watchedCameraId, cameraLive, placement, road]);
 
   // Unknown junction or camera in the URL: back to the island rather than a blank card.
   useEffect(() => {
@@ -349,6 +350,7 @@ export function PublicApp() {
         camera={camera}
         live={watchedCameraId ? cameraLive : null}
         calibrated={!!placement}
+        road={road}
         onBack={() => (area ? navigate("/") : closeCard())}
       />
     );

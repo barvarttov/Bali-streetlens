@@ -524,16 +524,20 @@ export function CameraInfo({
   camera,
   live,
   calibrated,
+  road,
   onBack,
 }: {
   camera: Camera;
   /** AGA on this camera, or null when it is not streaming right now (or AGA is unavailable). */
   live: CameraLiveStatus | null;
   calibrated: boolean;
+  /** Without a calibration: the nearest OSM road the vehicles are laid along (null: none within 150 m). */
+  road: { name: string | null } | null;
   onBack: () => void;
 }) {
   const { t, lang } = useLang();
   const id = lang === "id";
+  const roadName = road?.name ?? (id ? "jalan terdekat" : "the nearest road");
   const counting = live?.kind === "ok" && live.data.camera_state === "live";
   const refresh = live?.kind === "ok" ? live.data.refresh_s : undefined;
   return (
@@ -548,9 +552,13 @@ export function CameraInfo({
                 ? id
                   ? "Kendaraan 3D di peta ditempatkan dari kalibrasi kamera ini."
                   : "The 3D vehicles on the map are placed from this camera's calibration."
-                : id
-                  ? "Kendaraan 3D di peta digambar di sekitar titik kamera. Kamera ini belum dikalibrasi, jadi jalur dan jaraknya hanya perkiraan; jumlahnya nyata."
-                  : "The 3D vehicles on the map are drawn around the camera. It is not calibrated yet, so lanes and distances are only a guess; the number is real."}
+                : road
+                  ? id
+                    ? `Kendaraan 3D di peta ditaruh di sepanjang ${roadName}, jalan terdekat dari titik kamera. Kamera ini belum dikalibrasi, jadi letak tepatnya perkiraan; jumlahnya nyata.`
+                    : `The 3D vehicles on the map are laid along ${roadName}, the road nearest the camera. It is not calibrated yet, so the exact spots are estimates; the number is real.`
+                  : id
+                    ? "Kendaraan 3D di peta digambar di sekitar titik kamera. Kamera ini belum dikalibrasi, jadi jalur dan jaraknya hanya perkiraan; jumlahnya nyata."
+                    : "The 3D vehicles on the map are drawn around the camera. It is not calibrated yet, so lanes and distances are only a guess; the number is real."}
             </p>
             {refresh && (
               <p className="why-sentence">

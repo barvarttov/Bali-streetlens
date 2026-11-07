@@ -399,3 +399,129 @@ def _name_routes(routes: list[dict[str, Any]]) -> None:
         if via:
             used.add(via)
         r["via"] = via or None
+
+
+# ---------------------------------------------------------------------------------------------- road near a camera
+#
+# An uncalibrated camera's vehicles are known only in image pixels. Rather than drawing them in a guessed box
+# around the camera (on roofs, in rice fields), the map lays them along the OSM road nearest to the camera:
+# this returns that road around its nearest point. It is still an estimate, and the app says so.
+
+EDGE_CELL = 0.004  # degrees (~440 m): edge index cell
+ROAD_WIDTH_M = {
+    "motorway": 14.0, "trunk": 12.0, "primary": 10.0, "secondary": 8.0, "tertiary": 7.0, "unclassified": 6.0,
+    "residential": 5.5, "living_street": 4.5,
+}
+# Government CCTV watches main roads: a bigger road may be this many meters farther and still win.
+ROAD_PREFERENCE_M = {
+    "motorway": 30.0, "trunk": 30.0, "primary": 25.0, "secondary": 20.0, "tertiary": 15.0, "unclassified": 5.0,
+    "residential": 0.0, "living_street": -5.0,
+}
+_edge_index_lock = threading.Lock()
+
+
+def _edge_index(g: Graph) -> dict[tuple[int, int], list[int]]:
+    """Cell -> edges with a vertex in it. Built on first use (about a second), then kept on the graph."""
+    with _edge_index_lock:
+        idx = getattr(g, "_edge_index", None)
+        if idx is None:
+            idx = {}
+            for e in range(len(g.ea)):
+                cells = {(int(x // EDGE_CELL), int(y // EDGE_CELL)) for x, y in _edge_coords(g, e, True)}
+                for c in cells:
+                    idx.setdefault(c, []).append(e)
+            g._edge_index = idx  # type: ignore[attr-defined]
+        return idx
+
+
+def _local(o_lng: float, o_lat: float, lng: float, lat: float) -> tuple[float, float]:
+    return (lng - o_lng) * 111320 * math.cos(math.radians(o_lat)), (lat - o_lat) * 110540
+
+
+def _edges_at(g: Graph, node: int) -> list[int]:
+    x, y = g.xs[node], g.ys[node]
+    cell = (int(x // EDGE_CELL), int(y // EDGE_CELL))
+    return [e for e in _edge_index(g).get(cell, []) if g.ea[e] == node or g.eb[e] == node]
+
+
+def _continue(g: Graph, node: int, came_from: int, heading: tuple[float, float]) -> tuple[int, list[list[float]]] | None:
+    """The straightest edge leaving `node` (not the one we came from), as points starting at `node`."""
+    best, best_cos = None, 0.5  # at most ~60 degrees of turn: a junction's side street is not "the same road"
+    for e in _edges_at(g, node):
+        if e == came_from:
+            continue
+        pts = _edge_coords(g, e, g.ea[e] == node)
+        if len(pts) < 2:
+            continue
+        dx, dy = _local(pts[0][0], pts[0][1], pts[1][0], pts[1][1])
+        n = math.hypot(dx, dy) or 1.0
+        c = (dx * heading[0] + dy * heading[1]) / n
+        if c > best_cos:
+            best, best_cos = (e, pts), c
+    return best
+
+
+def _walk(g: Graph, start: list[list[float]], edge: int, end_node: int, length: float) -> list[list[float]]:
+    """Points from start[0] along `start`, then along straight continuations, for `length` meters."""
+    out = [start[0]]
+    left = length
+    pts, e, node = start, edge, end_node
+    for _ in range(8):
+        for a, b in zip(pts, pts[1:]):
+            d = _meters(a[0], a[1], b[0], b[1])
+            if d >= left:
+                t = left / d if d else 0.0
+                out.append([a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t])
+                return out
+            out.append(b)
+            left -= d
+        hx, hy = _local(pts[-2][0], pts[-2][1], pts[-1][0], pts[-1][1])
+        n = math.hypot(hx, hy) or 1.0
+        nxt = _continue(g, node, e, (hx / n, hy / n))
+        if nxt is None:
+            return out
+        e, pts = nxt
+        node = g.eb[e] if g.ea[e] == node else g.ea[e]
+    return out
+
+
+def road_near(g: Graph, lng: float, lat: float, max_m: float = 150.0, half_m: float = 70.0) -> dict[str, Any] | None:
+    """The OSM road nearest to a point, as a line through its nearest point (half_m each way along the road)."""
+    idx = _edge_index(g)
+    cx, cy = int(lng // EDGE_CELL), int(lat // EDGE_CELL)
+    best: tuple[float, int, int, float, list[list[float]]] | None = None
+    best_score = math.inf
+    for ix in range(cx - 1, cx + 2):
+        for iy in range(cy - 1, cy + 2):
+            for e in idx.get((ix, iy), ()):
+                pts = _edge_coords(g, e, True)
+                for i, (a, b) in enumerate(zip(pts, pts[1:])):
+                    ax, ay = _local(lng, lat, a[0], a[1])
+                    bx, by = _local(lng, lat, b[0], b[1])
+                    vx, vy = bx - ax, by - ay
+                    L2 = vx * vx + vy * vy
+                    t = 0.0 if L2 == 0 else max(0.0, min(1.0, -(ax * vx + ay * vy) / L2))
+                    d = math.hypot(ax + vx * t, ay + vy * t)
+                    if d > max_m:
+                        continue
+                    score = d - ROAD_PREFERENCE_M.get(g.classes[g.ecls[e]].replace("_link", ""), 0.0)
+                    if score < best_score:
+                        best, best_score = (d, e, i, t, pts), score
+    if best is None:
+        return None
+    d, e, i, t, pts = best
+    a, b = pts[i], pts[i + 1]
+    snap = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t]
+    forward = _walk(g, [snap] + pts[i + 1:], e, g.eb[e], half_m)
+    backward = _walk(g, [snap] + pts[i::-1], e, g.ea[e], half_m)
+    line = backward[::-1] + forward[1:]
+    cls = g.classes[g.ecls[e]]
+    return {
+        "name": g.names[g.ename[e]] or None,
+        "class": cls,
+        "width_m": ROAD_WIDTH_M.get(cls.replace("_link", ""), 6.0),
+        "distance_m": round(d, 1),
+        "snap": [round(snap[0], 7), round(snap[1], 7)],
+        "snap_index": len(backward) - 1,
+        "line": [[round(p[0], 7), round(p[1], 7)] for p in line],
+    }
