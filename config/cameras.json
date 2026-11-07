@@ -245,10 +245,19 @@
    "id": "jalan-seminyak-depan-swalayan-bintanggg-keraton",
    "name": "Jalan Seminyak Depan Swalayan Bintang/Gg Keraton",
    "lnglat": [
+    115.1681608,
+    -8.6940209
+   ],
+   "analyzed": false,
+   "lnglat_portal": [
     115.163917,
     -8.693063
    ],
-   "analyzed": false
+   "lnglat_note": "Camera position clicked on Google Maps satellite by the team (2026-11-07), at the mouth of the lane on the east side of Jl. Raya Seminyak, about 470 m from the portal value (which lies on a house roof). look_at is the road about 20 m north, estimated from the frame (shops on the left, a Balinese gate on the right, the road running away ahead). Not a calibration.",
+   "look_at": [
+    115.1681335,
+    -8.69384
+   ]
   },
   {
    "id": "jl-arjuna-parkiran-pantai-doublesix",
