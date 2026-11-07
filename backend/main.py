@@ -427,6 +427,16 @@ class SpaStaticFiles(StaticFiles):
     async def get_response(self, path: str, scope: Any) -> Response:
         if path.startswith("tiles/"):  # a missing map tile is an empty square, never the app's HTML
             return Response(status_code=204, headers={"Cache-Control": "public, max-age=86400, s-maxage=604800"})
+        # A missing script or file (a build hash from before the last deploy) must be a real 404: answered with
+        # index.html, the browser would try to run HTML as JavaScript and the page would stay white.
+        last = path.rsplit("/", 1)[-1]
+        if path.startswith("assets/") or "." in last:
+            try:
+                return await super().get_response(path, scope)
+            except StarletteHTTPException as exc:
+                if exc.status_code == 404:
+                    return Response(status_code=404, headers={"Cache-Control": "no-store"})
+                raise
         try:
             response = await super().get_response(path, scope)
         except StarletteHTTPException as exc:  # StaticFiles raises Starlette's base class, not FastAPI's

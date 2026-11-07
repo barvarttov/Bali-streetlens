@@ -2,6 +2,7 @@ import { StrictMode, Suspense, lazy, useEffect } from "react";
 import { createRoot } from "react-dom/client";
 import "@fontsource-variable/archivo/wdth.css";
 import "./styles/tokens.css";
+import { AppErrorBoundary, installStaleBuildReload } from "./AppErrorBoundary.tsx";
 import { LangProvider } from "./i18n.tsx";
 import { navigate, usePath } from "./router.ts";
 
@@ -33,8 +34,12 @@ function Root() {
   );
 }
 
+installStaleBuildReload();
+
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <Root />
+    <AppErrorBoundary>
+      <Root />
+    </AppErrorBoundary>
   </StrictMode>,
 );
